@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: 'Departure Mono';
+  src: url('/fonts/DepartureMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@layer base {
+  :root {
+    --bg-dark: #181717;
+    --bg-card: #222222;
+    --text-primary: #eeeeee;
+    --text-muted: #a8a8a8;
+    --highlight-yellow: #fee17e;
+    --highlight-orange: #fea133;
+    --highlight-green: #cde6cc;
+    --accent-red: #c9182e;
+    
+    --font-mono: 'Departure Mono', monospace;
+    --font-hand: 'Jim Nightshade', cursive;
+    --font-pixel: 'Departure Mono', monospace;
+  }
+
+  html.lenis, html.lenis body {
+    height: auto;
+  }
+
+  .lenis.lenis-smooth {
+    scroll-behavior: auto !important;
+  }
+
+  .lenis.lenis-smooth [data-lenis-prevent] {
+    overscroll-behavior: contain;
+  }
+
+  .lenis.lenis-stopped {
+    overflow: hidden;
+  }
+
+  .lenis.lenis-smooth iframe {
+    pointer-events: none;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-dark);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Custom Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #121212;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #333333;
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #555555;
+  }
+}
+
+/* Custom Font Utilities */
+.font-mono-custom {
+  font-family: var(--font-mono);
+}
+
+.font-departure {
+  font-family: 'Departure Mono', monospace;
+}
+
+.font-handwriting {
+  font-family: var(--font-hand);
+}
+
+.font-pixel-custom {
+  font-family: 'Departure Mono', monospace;
+  letter-spacing: -0.01em;
+}
+
+/* Glass panel */
+.glass-panel {
+  background: rgba(34, 34, 34, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Paperclip & Highlighter Effects */
+.highlighter-yellow {
+  background-color: var(--highlight-yellow);
+  color: #111;
+  padding: 0 4px;
+  display: inline;
+}
+
+.highlighter-orange {
+  background-color: var(--highlight-orange);
+  color: #111;
+  padding: 0 4px;
+  display: inline;
+}
+
+.highlighter-green {
+  background-color: var(--highlight-green);
+  color: #111;
+  padding: 0 4px;
+  display: inline;
+}
+
+.perspective-1000 {
+  perspective: 1000px;
+}
