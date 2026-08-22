@@ -1,61 +1,40 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { X, Sliders, Lock, Check } from 'lucide-react';
+import { X } from 'lucide-react';
 
 gsap.registerPlugin(ScrollTrigger);
+
+// USER LOCKED-IN CALIBRATION PARAMETERS
+const PAPER_PARAMS = {
+  paperWidth: 92,        // User locked-in paper width in %
+  startTop: -21,         // User locked-in Start Top offset in %
+  startRight: 3,         // User locked-in Start Right offset in %
+  startRotate: -0.5,     // User locked-in Start Rotation in deg
+  endY: 204,             // User locked-in End Y shift in px
+  endX: -76,             // User locked-in End X shift in px
+  endRotate: 9.63,       // User locked-in End Rotation in deg
+};
 
 export default function FolderHero() {
   const containerRef = useRef(null);
   const paperRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isTuningOpen, setIsTuningOpen] = useState(false);
-  const [copied, setCopied] = useState(false);
 
-  // USER LOCKED-IN CALIBRATION PARAMETERS
-  const [params, setParams] = useState({
-    paperWidth: 92,        // User locked-in paper width in %
-    startTop: -21,         // User locked-in Start Top offset in %
-    startRight: 3,         // User locked-in Start Right offset in %
-    startRotate: -0.5,     // User locked-in Start Rotation in deg
-    endY: 204,             // User locked-in End Y shift in px
-    endX: -76,             // User locked-in End X shift in px
-    endRotate: 9.63,       // User locked-in End Rotation in deg
-    mode: 'scroll',        // 'scroll' | 'start' | 'end'
-  });
-
-  // Handle parameter changes
-  const updateParam = (key, val) => {
-    setParams((prev) => ({ ...prev, [key]: parseFloat(val) || 0 }));
-  };
-
-  // GSAP ScrollTrigger Animation or Preview Modes
+  // GSAP ScrollTrigger Animation (Paper animates back into folder upright on scroll)
   useEffect(() => {
     const paper = paperRef.current;
     const container = containerRef.current;
     if (!paper || !container) return;
 
-    if (params.mode === 'start') {
-      gsap.killTweensOf(paper);
-      gsap.set(paper, { y: 0, x: 0, rotate: params.startRotate, scale: 1 });
-      return;
-    }
-
-    if (params.mode === 'end') {
-      gsap.killTweensOf(paper);
-      gsap.set(paper, { y: params.endY, x: params.endX, rotate: params.endRotate, scale: 0.985 });
-      return;
-    }
-
-    // Scroll Mode
     const ctx = gsap.context(() => {
       gsap.fromTo(
         paper,
-        { y: 0, x: 0, rotate: params.startRotate, scale: 1 },
+        { y: 0, x: 0, rotate: PAPER_PARAMS.startRotate, scale: 1 },
         {
-          y: params.endY,
-          x: params.endX,
-          rotate: params.endRotate,
+          y: PAPER_PARAMS.endY,
+          x: PAPER_PARAMS.endX,
+          rotate: PAPER_PARAMS.endRotate,
           scale: 0.985,
           ease: 'power2.inOut',
           scrollTrigger: {
@@ -69,16 +48,7 @@ export default function FolderHero() {
     }, container);
 
     return () => ctx.revert();
-  }, [params]);
-
-  // Copy locked values to clipboard
-  const handleLockValues = () => {
-    const codeSnippet = JSON.stringify(params, null, 2);
-    navigator.clipboard?.writeText?.(codeSnippet);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-    console.log('LOCKED PAPER PARAMETERS:', params);
-  };
+  }, []);
 
   return (
     <section
@@ -104,9 +74,9 @@ export default function FolderHero() {
           ref={paperRef}
           className="absolute z-10 filter drop-shadow-2xl origin-bottom-right"
           style={{
-            top: `${params.startTop}%`,
-            right: `${params.startRight}%`,
-            width: `${params.paperWidth}%`,
+            top: `${PAPER_PARAMS.startTop}%`,
+            right: `${PAPER_PARAMS.startRight}%`,
+            width: `${PAPER_PARAMS.paperWidth}%`,
           }}
         >
           <img
@@ -124,184 +94,6 @@ export default function FolderHero() {
             className="w-full h-full object-contain object-bottom-right"
           />
         </div>
-      </div>
-
-      {/* TEMPORARY CALIBRATION / TUNING TOOL PANEL */}
-      <div className="fixed bottom-6 left-6 z-50 font-departure">
-        {isTuningOpen ? (
-          <div className="bg-[#121212]/95 text-white border border-amber-500/40 rounded-xl p-5 shadow-2xl backdrop-blur-md w-[320px] sm:w-[360px] text-xs space-y-4 max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between border-b border-neutral-700 pb-2">
-              <div className="flex items-center gap-2 text-amber-400 font-bold">
-                <Sliders className="w-4 h-4" />
-                <span>PAPER POSITION CALIBRATOR</span>
-              </div>
-              <button
-                onClick={() => setIsTuningOpen(false)}
-                className="text-neutral-400 hover:text-white p-1"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Mode Selector */}
-            <div className="space-y-1">
-              <label className="text-[10px] text-neutral-400 uppercase tracking-wider">Preview Mode</label>
-              <div className="grid grid-cols-3 gap-1 bg-neutral-900 p-1 rounded-md border border-neutral-800">
-                {['scroll', 'start', 'end'].map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => setParams((p) => ({ ...p, mode: m }))}
-                    className={`py-1.5 rounded text-[11px] font-bold uppercase transition-colors ${
-                      params.mode === m ? 'bg-amber-500 text-black' : 'text-neutral-300 hover:bg-neutral-800'
-                    }`}
-                  >
-                    {m}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Paper Size Control */}
-            <div className="space-y-1 pt-1 border-t border-neutral-800">
-              <div className="flex justify-between text-neutral-300 font-semibold">
-                <span>PAPER SIZE (WIDTH)</span>
-                <span className="text-amber-400">{params.paperWidth}%</span>
-              </div>
-              <input
-                type="range"
-                min="80"
-                max="130"
-                step="1"
-                value={params.paperWidth}
-                onChange={(e) => updateParam('paperWidth', e.target.value)}
-                className="w-full accent-amber-500 cursor-pointer"
-              />
-            </div>
-
-            {/* Start Position Controls */}
-            <div className="space-y-2 pt-1 border-t border-neutral-800">
-              <span className="text-[10px] text-amber-300/80 font-bold uppercase tracking-wider">1. Start Position (Top/Right)</span>
-
-              <div className="space-y-1">
-                <div className="flex justify-between text-neutral-300">
-                  <span>Start Top Offset</span>
-                  <span className="text-amber-400">{params.startTop}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="-40"
-                  max="10"
-                  step="1"
-                  value={params.startTop}
-                  onChange={(e) => updateParam('startTop', e.target.value)}
-                  className="w-full accent-amber-500 cursor-pointer"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between text-neutral-300">
-                  <span>Start Right Offset</span>
-                  <span className="text-amber-400">{params.startRight}%</span>
-                </div>
-                <input
-                  type="range"
-                  min="-25"
-                  max="20"
-                  step="1"
-                  value={params.startRight}
-                  onChange={(e) => updateParam('startRight', e.target.value)}
-                  className="w-full accent-amber-500 cursor-pointer"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between text-neutral-300">
-                  <span>Start Rotation</span>
-                  <span className="text-amber-400">{params.startRotate}°</span>
-                </div>
-                <input
-                  type="range"
-                  min="-20"
-                  max="20"
-                  step="0.5"
-                  value={params.startRotate}
-                  onChange={(e) => updateParam('startRotate', e.target.value)}
-                  className="w-full accent-amber-500 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* End Position Controls */}
-            <div className="space-y-2 pt-1 border-t border-neutral-800">
-              <span className="text-[10px] text-amber-300/80 font-bold uppercase tracking-wider">2. End Position (Scrolled)</span>
-
-              <div className="space-y-1">
-                <div className="flex justify-between text-neutral-300">
-                  <span>End Y Shift</span>
-                  <span className="text-amber-400">{params.endY}px</span>
-                </div>
-                <input
-                  type="range"
-                  min="0"
-                  max="350"
-                  step="2"
-                  value={params.endY}
-                  onChange={(e) => updateParam('endY', e.target.value)}
-                  className="w-full accent-amber-500 cursor-pointer"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between text-neutral-300">
-                  <span>End X Shift</span>
-                  <span className="text-amber-400">{params.endX}px</span>
-                </div>
-                <input
-                  type="range"
-                  min="-100"
-                  max="100"
-                  step="2"
-                  value={params.endX}
-                  onChange={(e) => updateParam('endX', e.target.value)}
-                  className="w-full accent-amber-500 cursor-pointer"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <div className="flex justify-between text-neutral-300">
-                  <span>End Rotation</span>
-                  <span className="text-amber-400">{params.endRotate}°</span>
-                </div>
-                <input
-                  type="range"
-                  min="-15"
-                  max="25"
-                  step="0.5"
-                  value={params.endRotate}
-                  onChange={(e) => updateParam('endRotate', e.target.value)}
-                  className="w-full accent-amber-500 cursor-pointer"
-                />
-              </div>
-            </div>
-
-            {/* Lock In Values Button */}
-            <button
-              onClick={handleLockValues}
-              className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-lg flex items-center justify-center gap-2 transition-colors shadow-lg mt-2"
-            >
-              {copied ? <Check className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
-              <span>{copied ? 'LOCKED IN!' : 'LOCK IN VALUES'}</span>
-            </button>
-          </div>
-        ) : (
-          <button
-            onClick={() => setIsTuningOpen(true)}
-            className="bg-amber-500/90 hover:bg-amber-400 text-black px-3.5 py-2 rounded-full font-bold text-xs shadow-2xl flex items-center gap-2 border border-amber-300 backdrop-blur-md"
-          >
-            <Sliders className="w-3.5 h-3.5" />
-            <span>PAPER CALIBRATOR</span>
-          </button>
-        )}
       </div>
 
       {/* FULL COVER LETTER MODAL WITH STANDALONE OUTSIDE CLOSE BUTTON */}
