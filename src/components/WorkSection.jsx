@@ -1,133 +1,216 @@
-import React, { useState } from 'react';
-import { ArrowUpRight } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { FolderGit2 } from 'lucide-react';
+import WorkImageCanvas from './WorkImageCanvas';
+import TechnicalDrawingBackground from './TechnicalDrawingBackground';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const PROJECTS = [
   {
     id: '01',
     title: 'Afkit.ng Commerce',
     category: 'E-Commerce & Digital Products',
-    year: '2026',
-    description: 'Transforming multi-merchant e-commerce with seamless flow, intelligent search, and high-conversion UI design.',
-    image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1000&auto=format&fit=crop',
-    tags: ['UI/UX', 'Design System', 'E-Commerce', 'Mobile App'],
+    date: '2026',
+    video: 'https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-41483-large.mp4',
+    image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1400&auto=format&fit=crop',
     link: '#',
+    description: 'Next-generation commerce platform built for high-scale digital & physical inventory.',
   },
   {
     id: '02',
     title: 'Fintech Dashboard',
-    category: 'Admin & Financial Analytics',
-    year: '2025',
-    description: 'Scalable data visualization and transaction dashboard built for high-throughput enterprise management.',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1000&auto=format&fit=crop',
-    tags: ['Dashboard', 'Data Viz', 'Fintech', 'SaaS'],
+    category: 'Financial Analytics & SaaS',
+    date: '2025',
+    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1400&auto=format&fit=crop',
     link: '#',
+    description: 'Real-time financial telemetry dashboard with predictive portfolio intelligence.',
   },
   {
     id: '03',
     title: 'Aura Sound System',
-    category: 'Audio & Music Experience',
-    year: '2025',
-    description: 'Immersive sound design interface and spatial audio player for music purists.',
-    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1000&auto=format&fit=crop',
-    tags: ['Web Audio', 'Experimental', '3D Graphics'],
+    category: 'Audio & Spatial Experience',
+    date: '2025',
+    video: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-connection-dots-and-lines-41551-large.mp4',
+    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1400&auto=format&fit=crop',
     link: '#',
+    description: 'Spatial audio web engine rendering real-time acoustic environments.',
+  },
+  {
+    id: '04',
+    title: 'Neon Horizon OS',
+    category: 'Cyberpunk Web Interface',
+    date: '2024',
+    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1400&auto=format&fit=crop',
+    link: '#',
+    description: 'Futuristic desktop shell interface with custom window compositor & node graph.',
+  },
+  {
+    id: '05',
+    title: 'Kinetic Motion Studio',
+    category: '3D Shader & Physics Engine',
+    date: '2024',
+    video: 'https://assets.mixkit.co/videos/preview/mixkit-tunnel-of-futuristic-neon-lights-41555-large.mp4',
+    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1400&auto=format&fit=crop',
+    link: '#',
+    description: 'Experimental WebGL physics environment exploring procedural particle dynamics.',
+  },
+  {
+    id: '06',
+    title: 'Quantum Synthesizer',
+    category: 'Interactive Audio & WebGL',
+    date: '2024',
+    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1400&auto=format&fit=crop',
+    link: '#',
+    description: 'Generative synthesizer interface translating user gestures into generative spatial sound.',
   },
 ];
 
+const RANDOM_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|<>?';
+
 export default function WorkSection() {
-  const [activeTab, setActiveTab] = useState('WORK 01');
-  const [selectedProject, setSelectedProject] = useState(PROJECTS[0]);
+  const sectionRef = useRef(null);
+  const titleRef = useRef(null);
+  const cardsRef = useRef([]);
+  const [hoveredCard, setHoveredCard] = useState(null);
+  const [scrollVelocity, setScrollVelocity] = useState(0);
+  const [workTitle, setWorkTitle] = useState('WORK');
+
+  const scrambleWorkTitle = () => {
+    const targetText = 'WORK';
+    let iteration = 0;
+    const interval = setInterval(() => {
+      setWorkTitle(
+        targetText
+          .split('')
+          .map((char, index) => {
+            if (index < iteration) return targetText[index];
+            return RANDOM_CHARS[Math.floor(Math.random() * RANDOM_CHARS.length)];
+          })
+          .join('')
+      );
+
+      if (iteration >= targetText.length) {
+        clearInterval(interval);
+      }
+      iteration += 1 / 3;
+    }, 40);
+  };
+
+  useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+
+    let velocityTimeout;
+    let lastScrollY = window.scrollY;
+
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      const vel = (currentScrollY - lastScrollY) * 0.1;
+      const clampedVel = Math.max(-2, Math.min(2, vel));
+      setScrollVelocity(clampedVel);
+      lastScrollY = currentScrollY;
+
+      clearTimeout(velocityTimeout);
+      velocityTimeout = setTimeout(() => {
+        setScrollVelocity(0);
+      }, 80);
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    // GSAP ScrollTrigger Entrance & Decryption Animation
+    const ctx = gsap.context(() => {
+      if (titleRef.current) {
+        ScrollTrigger.create({
+          trigger: titleRef.current,
+          start: 'top 85%',
+          onEnter: scrambleWorkTitle,
+        });
+      }
+
+      cardsRef.current.forEach((card) => {
+        if (!card) return;
+        gsap.fromTo(
+          card,
+          { opacity: 0, y: 50 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 0.8,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: card,
+              start: 'top 85%',
+              toggleActions: 'play none none reverse',
+            },
+          }
+        );
+      });
+    }, sectionRef);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      clearTimeout(velocityTimeout);
+      ctx.revert();
+    };
+  }, []);
 
   return (
-    <section className="relative w-full py-24 px-6 md:px-16 max-w-[1920px] mx-auto z-10 select-none">
-      {/* Big Title */}
-      <h2 className="font-pixel-custom text-6xl md:text-8xl lg:text-9xl text-white tracking-widest mb-16">
-        WORK
-      </h2>
+    <section
+      ref={sectionRef}
+      id="work-section"
+      className="relative w-full bg-[#181717] text-white py-24 sm:py-32 px-6 sm:px-10 md:px-16 z-10 overflow-hidden select-none"
+    >
+      {/* Background CAD Technical Grid Layer */}
+      <TechnicalDrawingBackground />
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-        {/* Left Navigation Menu */}
-        <div className="lg:col-span-3 font-departure text-base md:text-xl space-y-4 text-[#a8a8a8]">
-          <button
-            onClick={() => {
-              setActiveTab('WORK 01');
-              setSelectedProject(PROJECTS[0]);
-            }}
-            className={`flex items-center gap-2 w-full text-left transition-colors duration-200 ${
-              activeTab === 'WORK 01' ? 'text-white font-bold' : 'hover:text-white'
-            }`}
-          >
-            <span>{activeTab === 'WORK 01' ? '>> WORK 01' : '   WORK 01'}</span>
-          </button>
+      <div className="relative z-10 max-w-[1600px] mx-auto">
+        {/* Section Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 md:mb-20 pb-8 border-b border-neutral-800">
+          <div>
+            <h2
+              ref={titleRef}
+              onMouseEnter={scrambleWorkTitle}
+              className="font-pixel-custom text-5xl sm:text-7xl md:text-8xl lg:text-[96px] text-white tracking-widest leading-none drop-shadow-[0_4px_24px_rgba(255,255,255,0.08)] cursor-pointer hover:text-[#a8a8a8] transition-colors duration-300"
+            >
+              {workTitle}
+            </h2>
+          </div>
 
-          <a
-            href="https://dribbble.com"
-            target="_blank"
-            rel="noreferrer"
-            className="block text-[#a8a8a8] hover:text-white transition-colors duration-200 pl-6"
-          >
-            DRIBBLE
-          </a>
-
-          <a
-            href="mailto:ayodeji@example.com"
-            className="block text-[#a8a8a8] hover:text-white transition-colors duration-200 pl-6"
-          >
-            EMAIL
-          </a>
+          <div className="font-departure text-xs text-neutral-400 tracking-widest flex items-center gap-3">
+            <FolderGit2 className="w-4 h-4 text-[#a8a8a8]" />
+            <span>[ {String(PROJECTS.length).padStart(2, '0')} ARCHIVED PROJECTS ]</span>
+          </div>
         </div>
 
-        {/* Main Work Showcase */}
-        <div className="lg:col-span-9 space-y-12">
-          {PROJECTS.map((project) => (
-            <div
-              key={project.id}
-              onClick={() => setSelectedProject(project)}
-              className="group relative glass-panel rounded-lg p-6 md:p-10 border border-neutral-800 hover:border-neutral-500 transition-all duration-500 cursor-pointer overflow-hidden"
-            >
-              {/* Background Glow on Hover */}
-              <div className="absolute inset-0 bg-gradient-to-r from-neutral-900/50 to-neutral-800/20 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+        {/* 2-Column Equal Dimension Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-14 items-stretch">
+          {PROJECTS.map((project, index) => {
+            const isHovered = hoveredCard === project.id;
+            const hasVideo = Boolean(project.video);
 
-              <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center relative z-10">
-                {/* Text Info */}
-                <div className="md:col-span-6 space-y-4">
-                  <div className="flex items-center justify-between text-xs font-departure text-neutral-400">
-                    <span>// {project.id}</span>
-                    <span>{project.year}</span>
-                  </div>
-
-                  <h3 className="font-pixel-custom text-2xl md:text-3xl text-white group-hover:text-amber-200 transition-colors duration-300 flex items-center gap-3">
-                    {project.title}
-                    <ArrowUpRight className="w-5 h-5 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-amber-300" />
-                  </h3>
-
-                  <p className="text-xs md:text-sm text-neutral-400 font-departure leading-relaxed">
-                    {project.description}
-                  </p>
-
-                  <div className="flex flex-wrap gap-2 pt-2">
-                    {project.tags.map((tag, idx) => (
-                      <span
-                        key={idx}
-                        className="text-[10px] md:text-xs font-departure px-2.5 py-1 rounded bg-neutral-800/80 text-neutral-300 border border-neutral-700"
-                      >
-                        {tag}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Project Image Preview - Clean image without hover zoom or filter */}
-                <div className="md:col-span-6 overflow-hidden rounded-md border border-neutral-700/60 aspect-[16/10]">
-                  <img
-                    src={project.image}
-                    alt={project.title}
-                    className="w-full h-full object-cover"
+            return (
+              <div
+                key={project.id}
+                ref={(el) => (cardsRef.current[index] = el)}
+                onMouseEnter={() => setHoveredCard(project.id)}
+                onMouseLeave={() => setHoveredCard(null)}
+                className="group relative flex flex-col"
+              >
+                {/* Equal Large Square Dimension Media Container (Pure Visual Tile - No Links) */}
+                <div className="relative w-full aspect-square rounded-2xl overflow-hidden glass-panel border border-neutral-800 group-hover:border-[#a8a8a8]/50 shadow-2xl transition-all duration-500">
+                  <WorkImageCanvas
+                    imageUrl={project.image}
+                    videoUrl={project.video}
+                    velocity={scrollVelocity}
+                    isHovered={isHovered}
                   />
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </section>

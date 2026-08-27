@@ -1,12 +1,18 @@
 import React, { useEffect } from 'react';
 import Lenis from 'lenis';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 import BackgroundShader from './components/BackgroundShader';
+import NoiseOverlay from './components/NoiseOverlay';
+import Preloader from './components/Preloader';
 import Header from './components/Header';
 import FolderHero from './components/FolderHero';
 import NotesSection from './components/NotesSection';
 import WorkSection from './components/WorkSection';
 import FooterSection from './components/FooterSection';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export default function App() {
   useEffect(() => {
@@ -21,22 +27,32 @@ export default function App() {
       touchMultiplier: 2,
     });
 
-    function raf(time) {
-      lenis.raf(time);
-      requestAnimationFrame(raf);
-    }
+    window.lenis = lenis;
+    lenis.on('scroll', ScrollTrigger.update);
 
-    requestAnimationFrame(raf);
+    const updateTicker = (time) => {
+      lenis.raf(time * 1000);
+    };
+
+    gsap.ticker.add(updateTicker);
+    gsap.ticker.lagSmoothing(0);
 
     return () => {
+      gsap.ticker.remove(updateTicker);
       lenis.destroy();
     };
   }, []);
 
   return (
     <div className="relative min-h-screen bg-[#181717] text-[#eeeeee] overflow-x-hidden selection:bg-amber-300 selection:text-black">
+      {/* Architectural Decryption Preloader Screen */}
+      <Preloader />
+
       {/* WebGL Background Shader Layer */}
       <BackgroundShader />
+
+      {/* Whole-Website WebGL Animated Film Grain Noise Overlay */}
+      <NoiseOverlay />
 
       {/* Main Content Layout */}
       <div className="relative z-10">

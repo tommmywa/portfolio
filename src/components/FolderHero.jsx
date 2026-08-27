@@ -2,6 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { X } from 'lucide-react';
+import TechnicalDrawingBackground from './TechnicalDrawingBackground';
+import { useSound } from '../hooks/useSound';
+import { bookFlip3Sound } from '../sounds/book-flip-3';
+import { click002Sound } from '../sounds/click-002';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -20,6 +24,18 @@ export default function FolderHero() {
   const containerRef = useRef(null);
   const paperRef = useRef(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [playBookFlip] = useSound(bookFlip3Sound);
+  const [playClick] = useSound(click002Sound);
+
+  const handleOpenModal = () => {
+    playBookFlip();
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    playClick();
+    setIsModalOpen(false);
+  };
 
   // GSAP ScrollTrigger Animation (Paper animates back into folder upright on scroll)
   useEffect(() => {
@@ -55,9 +71,12 @@ export default function FolderHero() {
       ref={containerRef}
       className="relative w-full h-[64vh] min-h-[64vh] bg-[#181717] pt-8 pb-0 flex flex-col items-center justify-start z-20 overflow-visible mb-[-220px] md:mb-[-340px]"
     >
+      {/* Architectural CAD Technical Illustration Background Layer */}
+      <TechnicalDrawingBackground />
+
       {/* Interactive Folder Container */}
       <div
-        onClick={() => setIsModalOpen(true)}
+        onClick={handleOpenModal}
         className="relative w-full max-w-[980px] aspect-[865/745] cursor-pointer group perspective-1000 select-none overflow-visible translate-y-[20%] md:translate-y-[24%]"
       >
         {/* FOLDER BACK */}
@@ -99,7 +118,7 @@ export default function FolderHero() {
       {/* FULL COVER LETTER MODAL WITH STANDALONE OUTSIDE CLOSE BUTTON */}
       {isModalOpen && (
         <div
-          onClick={() => setIsModalOpen(false)}
+          onClick={handleCloseModal}
           className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 md:p-12 animate-fadeIn"
         >
           {/* OUTER WRAPPER CONTAINER: CLOSE BUTTON + PAPER SHEET */}
@@ -109,7 +128,7 @@ export default function FolderHero() {
           >
             {/* STANDALONE OUTSIDE CLOSE BUTTON - SITS 100% OUTSIDE ABOVE TOP RIGHT OF PAPER */}
             <button
-              onClick={() => setIsModalOpen(false)}
+              onClick={handleCloseModal}
               className="px-4 py-2 rounded-full bg-[#181717] hover:bg-neutral-800 text-white border border-neutral-600 shadow-2xl transition-all hover:scale-105 active:scale-95 cursor-pointer z-50 flex items-center gap-2 text-xs font-bold tracking-wide"
               title="Close Cover Letter"
             >

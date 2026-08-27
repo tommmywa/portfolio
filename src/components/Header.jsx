@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useSound } from '../hooks/useSound';
+import { click002Sound } from '../sounds/click-002';
 
 const RANDOM_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|<>?';
 
 export default function Header() {
   const [timeString, setTimeString] = useState('');
+  const [playClick] = useSound(click002Sound);
   
   // Decryption effect states for AYODEJI and OGUNDIPE
   const [line1, setLine1] = useState('AYODEJI');
@@ -64,6 +67,7 @@ export default function Header() {
         {/* Decrypting Name Logo with Tightened Line-Height */}
         <div
           onMouseEnter={triggerDecryption}
+          onClick={playClick}
           className="font-departure text-3xl md:text-5xl font-bold text-[#a8a8a8] tracking-wider hover:text-white transition-colors duration-300 cursor-pointer group leading-[0.85] md:leading-[0.85] space-y-0"
         >
           <p className="m-0 p-0 leading-[0.85] block">{line1}</p>
@@ -76,6 +80,7 @@ export default function Header() {
             href="https://x.com"
             target="_blank"
             rel="noreferrer"
+            onClick={playClick}
             className="hover:text-white transition-colors duration-200"
           >
             X(TWITTER)
@@ -84,12 +89,14 @@ export default function Header() {
             href="https://dribbble.com"
             target="_blank"
             rel="noreferrer"
+            onClick={playClick}
             className="hover:text-white transition-colors duration-200"
           >
             DRIBBLE
           </a>
           <a
             href="mailto:ayodeji@example.com"
+            onClick={playClick}
             className="hover:text-white transition-colors duration-200"
           >
             EMAIL
@@ -121,3 +128,4 @@ export default function Header() {
     </header>
   );
 }
+
