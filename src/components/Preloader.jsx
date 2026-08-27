@@ -16,32 +16,69 @@ const TELEMETRY_STAGES = [
 const MATRIX_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|<>';
 
 export default function Preloader({ onComplete }) {
+  const [hasStarted, setHasStarted] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [telemetryText, setTelemetryText] = useState('INITIALIZING CAD CORE SYSTEM...');
+  const [telemetryText, setTelemetryText] = useState('CLICK ANYWHERE TO BOOT SYSTEM...');
   const [isComplete, setIsComplete] = useState(false);
   
   const containerRef = useRef(null);
   const scannerRef = useRef(null);
   const [playClick] = useSound(click002Sound);
-  const [playScroll] = useSound(scroll004Sound, { volume: 0.35, interrupt: true });
 
-  // Play single scroll tick sound on every percentage counter increment up to 100%
+  const startBootSequence = () => {
+    if (hasStarted) return;
+    setHasStarted(true);
+
+    // Unlock Web Audio API context on user gesture
+    try {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') {
+        ctx.resume();
+      }
+    } catch (e) {
+      // Audio fallback
+    }
+
+    // Play initial boot sound
+    try {
+      const audio = new Audio(click002Sound.dataUri);
+      audio.volume = 0.4;
+      audio.play().catch(() => {});
+    } catch (e) {}
+  };
+
+  // Listen for initial user interaction (click, keypress, or tap) to unlock audio & start preloader
   useEffect(() => {
-    if (progress > 0 && progress < 100) {
+    const handleInteraction = () => {
+      startBootSequence();
+    };
+
+    window.addEventListener('pointerdown', handleInteraction, { once: true });
+    window.addEventListener('keydown', handleInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
+  }, [hasStarted]);
+
+  // Play single scroll tick sound on every percentage counter increment while counting up
+  useEffect(() => {
+    if (hasStarted && progress > 0 && progress < 100) {
       try {
         const audio = new Audio(scroll004Sound.dataUri);
-        audio.volume = 0.3;
-        audio.play().catch(() => {
-          // Autoplay policy waiting for initial interaction
-        });
+        audio.volume = 0.35;
+        audio.play().catch(() => {});
       } catch (e) {
         // Audio policy fallback
       }
     }
-  }, [progress]);
+  }, [progress, hasStarted]);
 
-  // Preloader interval timer counting 0% -> 100%
+  // Preloader interval timer counting 0% -> 100% after boot sequence starts
   useEffect(() => {
+    if (!hasStarted) return;
+
     document.body.style.overflow = 'hidden';
 
     let currentProgress = 0;
@@ -81,7 +118,7 @@ export default function Preloader({ onComplete }) {
       clearInterval(interval);
       document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [hasStarted]);
 
   // GSAP Exit Animation: Smooth vertical curtain slide-up
   const triggerExitAnimation = () => {
@@ -116,14 +153,7 @@ export default function Preloader({ onComplete }) {
   return (
     <div
       ref={containerRef}
-      onClick={() => {
-        try {
-          const ctx = getAudioContext();
-          if (ctx.state === 'suspended') {
-            ctx.resume();
-          }
-        } catch (e) {}
-      }}
+      onClick={startBootSequence}
       className="fixed inset-0 z-[10000] bg-[#181717] text-[#eeeeee] flex flex-col justify-between p-6 md:p-12 select-none overflow-hidden cursor-pointer"
     >
       {/* Background CAD Dotted Pattern for Preloader */}
@@ -163,10 +193,16 @@ export default function Preloader({ onComplete }) {
         </div>
 
         {/* Matrix Scramble Telemetry Line */}
-        <div className="mt-6 md:mt-8 font-mono text-xs sm:text-sm text-neutral-300 tracking-widest uppercase h-6 px-4 py-1 rounded border border-neutral-800 bg-neutral-900/60 backdrop-blur-sm flex items-center gap-2">
+        <div className="mt-6 md:mt-8 font-mono text-xs sm:text-sm text-neutral-300 tracking-widest uppercase h-8 px-4 py-1.5 rounded border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm flex items-center gap-2">
           <span className="text-blue-400 font-bold">&gt;</span>
           <span>{telemetryText}</span>
         </div>
+
+        {!hasStarted && (
+          <div className="mt-4 font-mono text-[11px] text-blue-400 tracking-widest uppercase animate-pulse">
+            [ TAP / CLICK ANYWHERE TO INITIALIZE CAD SYSTEM ]
+          </div>
+        )}
       </div>
 
       {/* BOTTOM SPECS BAR */}
