@@ -204,7 +204,7 @@ export default function WorkSection() {
                 className="group relative flex flex-col cursor-pointer"
               >
                 {/* Equal Large Square Dimension Media Container */}
-                <div className="relative w-full aspect-square rounded-2xl overflow-hidden glass-panel border border-neutral-800/90 group-hover:border-blue-500/60 shadow-2xl group-hover:shadow-[0_0_35px_rgba(59,130,246,0.2)] transition-all duration-500">
+                <div className="relative w-full aspect-square rounded-2xl overflow-hidden shadow-2xl transition-all duration-500">
                   {/* WebGL Warp Canvas */}
                   <WorkImageCanvas
                     imageUrl={project.image}
