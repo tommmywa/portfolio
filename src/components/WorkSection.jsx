@@ -189,7 +189,6 @@ export default function WorkSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-14 items-stretch">
           {PROJECTS.map((project, index) => {
             const isHovered = hoveredCard === project.id;
-            const hasVideo = Boolean(project.video);
 
             return (
               <div
@@ -197,16 +196,44 @@ export default function WorkSection() {
                 ref={(el) => (cardsRef.current[index] = el)}
                 onMouseEnter={() => setHoveredCard(project.id)}
                 onMouseLeave={() => setHoveredCard(null)}
-                className="group relative flex flex-col"
+                style={{
+                  transform: `skewY(${scrollVelocity * 1.6}deg) rotate(${scrollVelocity * 0.35}deg) translateY(${scrollVelocity * 1.8}px) scale(${isHovered ? 1.02 : 1.0})`,
+                  transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease',
+                  transformOrigin: 'center center',
+                }}
+                className="group relative flex flex-col cursor-pointer"
               >
-                {/* Equal Large Square Dimension Media Container (Pure Visual Tile - No Links) */}
-                <div className="relative w-full aspect-square rounded-2xl overflow-hidden glass-panel border border-neutral-800 group-hover:border-[#a8a8a8]/50 shadow-2xl transition-all duration-500">
+                {/* Equal Large Square Dimension Media Container */}
+                <div className="relative w-full aspect-square rounded-2xl overflow-hidden glass-panel border border-neutral-800/90 group-hover:border-blue-500/60 shadow-2xl group-hover:shadow-[0_0_35px_rgba(59,130,246,0.2)] transition-all duration-500">
+                  {/* WebGL Warp Canvas */}
                   <WorkImageCanvas
                     imageUrl={project.image}
                     videoUrl={project.video}
                     velocity={scrollVelocity}
                     isHovered={isHovered}
                   />
+
+                  {/* Top Bar CAD Telemetry Overlay inside Card */}
+                  <div className="absolute top-4 left-4 right-4 z-20 flex items-center justify-between pointer-events-none font-mono text-[10px] sm:text-xs text-neutral-300 tracking-widest uppercase bg-neutral-950/75 backdrop-blur-md px-3.5 py-1.5 rounded-lg border border-neutral-800/80">
+                    <span className="text-blue-400 font-bold">[ {project.id} ]</span>
+                    <span className="truncate max-w-[180px] sm:max-w-none text-neutral-400">{project.category}</span>
+                    <span className="text-neutral-500 hidden sm:inline">[ {project.date} ]</span>
+                  </div>
+
+                  {/* Bottom CAD Title & Specs Overlay */}
+                  <div className="absolute bottom-0 left-0 right-0 z-20 p-5 sm:p-6 bg-gradient-to-t from-[#181717]/95 via-[#181717]/80 to-transparent backdrop-blur-[2px] transition-all duration-300">
+                    <div className="flex items-center justify-between gap-4 mb-2">
+                      <h3 className="font-pixel-custom text-xl sm:text-2xl md:text-3xl text-white group-hover:text-blue-400 transition-colors duration-300 tracking-wider">
+                        {project.title}
+                      </h3>
+                      <span className="font-mono text-[10px] text-neutral-500 uppercase px-2 py-0.5 border border-neutral-800 rounded bg-neutral-900/60">
+                        ARCHIVE_{project.id}
+                      </span>
+                    </div>
+                    <p className="font-departure text-xs sm:text-sm text-[#a8a8a8] line-clamp-2 leading-relaxed">
+                      {project.description}
+                    </p>
+                  </div>
                 </div>
               </div>
             );
