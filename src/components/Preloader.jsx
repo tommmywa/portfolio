@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { gsap } from 'gsap';
-import { useSound } from '../hooks/useSound';
-import { click002Sound } from '../sounds/click-002';
 import { scroll004Sound } from '../sounds/scroll-004';
-import { getAudioContext } from '../lib/sound-engine';
+import { click002Sound } from '../sounds/click-002';
+import { getAudioContext, decodeAudioData } from '../lib/sound-engine';
 
 const TELEMETRY_STAGES = [
   { threshold: 0, text: 'BOOTSTRAPPING CAD CORE SYSTEM' },
@@ -23,31 +22,76 @@ export default function Preloader({ onComplete }) {
   
   const containerRef = useRef(null);
   const scannerRef = useRef(null);
-  const [playClick] = useSound(click002Sound);
+  const activeSourceRef = useRef(null);
+
+  // Pre-decode audio buffer into memory on mount
+  useEffect(() => {
+    decodeAudioData(scroll004Sound.dataUri).catch(() => {});
+    decodeAudioData(click002Sound.dataUri).catch(() => {});
+  }, []);
+
+  const playAuthenticScrollSound = async () => {
+    try {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+
+      const buffer = await decodeAudioData(scroll004Sound.dataUri);
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
+
+      source.buffer = buffer;
+      source.loop = true;
+      gain.gain.value = 0.45;
+
+      source.connect(gain);
+      gain.connect(ctx.destination);
+
+      source.start(0);
+      activeSourceRef.current = source;
+    } catch (e) {
+      // Fallback
+    }
+  };
+
+  const stopAuthenticScrollSound = () => {
+    if (activeSourceRef.current) {
+      try {
+        activeSourceRef.current.stop();
+      } catch (e) {}
+      activeSourceRef.current = null;
+    }
+  };
+
+  const playClickSound = async () => {
+    try {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+      const buffer = await decodeAudioData(click002Sound.dataUri);
+      const source = ctx.createBufferSource();
+      const gain = ctx.createGain();
+
+      source.buffer = buffer;
+      gain.gain.value = 0.5;
+
+      source.connect(gain);
+      gain.connect(ctx.destination);
+      source.start(0);
+    } catch (e) {}
+  };
 
   const startBootSequence = () => {
     if (hasStarted) return;
     setHasStarted(true);
 
-    // Unlock Web Audio API context on user gesture
-    try {
-      const ctx = getAudioContext();
-      if (ctx.state === 'suspended') {
-        ctx.resume();
-      }
-    } catch (e) {
-      // Audio fallback
-    }
-
-    // Play initial boot sound
-    try {
-      const audio = new Audio(click002Sound.dataUri);
-      audio.volume = 0.4;
-      audio.play().catch(() => {});
-    } catch (e) {}
+    // Play authentic original scroll sound file
+    playAuthenticScrollSound();
   };
 
-  // Listen for initial user interaction (click, keypress, or tap) to unlock audio & start preloader
+  // Listen for initial user interaction to unlock audio & start preloader
   useEffect(() => {
     const handleInteraction = () => {
       startBootSequence();
@@ -61,19 +105,6 @@ export default function Preloader({ onComplete }) {
       window.removeEventListener('keydown', handleInteraction);
     };
   }, [hasStarted]);
-
-  // Play single scroll tick sound on every percentage counter increment while counting up
-  useEffect(() => {
-    if (hasStarted && progress > 0 && progress < 100) {
-      try {
-        const audio = new Audio(scroll004Sound.dataUri);
-        audio.volume = 0.35;
-        audio.play().catch(() => {});
-      } catch (e) {
-        // Audio policy fallback
-      }
-    }
-  }, [progress, hasStarted]);
 
   // Preloader interval timer counting 0% -> 100% after boot sequence starts
   useEffect(() => {
@@ -108,6 +139,9 @@ export default function Preloader({ onComplete }) {
 
       if (currentProgress >= 100) {
         clearInterval(interval);
+        stopAuthenticScrollSound();
+        playClickSound();
+
         setTimeout(() => {
           triggerExitAnimation();
         }, 300);
@@ -116,20 +150,13 @@ export default function Preloader({ onComplete }) {
 
     return () => {
       clearInterval(interval);
+      stopAuthenticScrollSound();
       document.body.style.overflow = 'unset';
     };
   }, [hasStarted]);
 
   // GSAP Exit Animation: Smooth vertical curtain slide-up
   const triggerExitAnimation = () => {
-    try {
-      const audio = new Audio(click002Sound.dataUri);
-      audio.volume = 0.5;
-      audio.play().catch(() => {});
-    } catch (e) {
-      // Audio playback fallback
-    }
-
     if (!containerRef.current) {
       document.body.style.overflow = 'unset';
       if (onComplete) onComplete();
