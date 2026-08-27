@@ -25,44 +25,20 @@ export default function Preloader({ onComplete }) {
   const [playClick] = useSound(click002Sound);
   const [playScroll] = useSound(scroll004Sound, { volume: 0.35, interrupt: true });
 
-  // Unlock AudioContext on user interaction during preloader phase
-  useEffect(() => {
-    const handleUnlock = () => {
-      try {
-        const ctx = getAudioContext();
-        if (ctx.state === 'suspended') {
-          ctx.resume();
-        }
-      } catch (e) {
-        // Fallback
-      }
-    };
-
-    window.addEventListener('pointerdown', handleUnlock);
-    window.addEventListener('keydown', handleUnlock);
-    window.addEventListener('click', handleUnlock);
-
-    return () => {
-      window.removeEventListener('pointerdown', handleUnlock);
-      window.removeEventListener('keydown', handleUnlock);
-      window.removeEventListener('click', handleUnlock);
-    };
-  }, []);
-
-  // Play single scroll tick ONLY if progress is active (1-99%) AND AudioContext is active
+  // Play single scroll tick sound on every percentage counter increment up to 100%
   useEffect(() => {
     if (progress > 0 && progress < 100) {
       try {
-        const ctx = getAudioContext();
-        // Only trigger sound if AudioContext is running; NEVER queue sounds on suspended context
-        if (ctx.state === 'running') {
-          playScroll();
-        }
+        const audio = new Audio(scroll004Sound.dataUri);
+        audio.volume = 0.3;
+        audio.play().catch(() => {
+          // Autoplay policy waiting for initial interaction
+        });
       } catch (e) {
         // Audio policy fallback
       }
     }
-  }, [progress, playScroll]);
+  }, [progress]);
 
   // Preloader interval timer counting 0% -> 100%
   useEffect(() => {
@@ -110,10 +86,9 @@ export default function Preloader({ onComplete }) {
   // GSAP Exit Animation: Smooth vertical curtain slide-up
   const triggerExitAnimation = () => {
     try {
-      const ctx = getAudioContext();
-      if (ctx.state === 'running') {
-        playClick();
-      }
+      const audio = new Audio(click002Sound.dataUri);
+      audio.volume = 0.5;
+      audio.play().catch(() => {});
     } catch (e) {
       // Audio playback fallback
     }
