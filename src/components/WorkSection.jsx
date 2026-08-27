@@ -220,20 +220,6 @@ export default function WorkSection() {
                     <span className="text-neutral-500 hidden sm:inline">[ {project.date} ]</span>
                   </div>
 
-                  {/* Bottom CAD Title & Specs Overlay */}
-                  <div className="absolute bottom-0 left-0 right-0 z-20 p-5 sm:p-6 bg-gradient-to-t from-[#181717]/95 via-[#181717]/80 to-transparent backdrop-blur-[2px] transition-all duration-300">
-                    <div className="flex items-center justify-between gap-4 mb-2">
-                      <h3 className="font-pixel-custom text-xl sm:text-2xl md:text-3xl text-white group-hover:text-blue-400 transition-colors duration-300 tracking-wider">
-                        {project.title}
-                      </h3>
-                      <span className="font-mono text-[10px] text-neutral-500 uppercase px-2 py-0.5 border border-neutral-800 rounded bg-neutral-900/60">
-                        ARCHIVE_{project.id}
-                      </span>
-                    </div>
-                    <p className="font-departure text-xs sm:text-sm text-[#a8a8a8] line-clamp-2 leading-relaxed">
-                      {project.description}
-                    </p>
-                  </div>
                 </div>
               </div>
             );
