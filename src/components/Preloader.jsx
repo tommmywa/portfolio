@@ -15,22 +15,45 @@ const TELEMETRY_STAGES = [
 const MATRIX_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|<>';
 
 export default function Preloader({ onComplete }) {
-  const [hasStarted, setHasStarted] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [telemetryText, setTelemetryText] = useState('CLICK ANYWHERE TO BOOT SYSTEM...');
+  const [telemetryText, setTelemetryText] = useState('BOOTSTRAPPING CAD CORE SYSTEM...');
   const [isComplete, setIsComplete] = useState(false);
   
   const containerRef = useRef(null);
   const scannerRef = useRef(null);
   const activeSourceRef = useRef(null);
 
+  // Unlock Web Audio context on user interaction
+  const unlockAudio = async () => {
+    try {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') {
+        await ctx.resume();
+      }
+      playAuthenticScrollSound();
+    } catch (e) {}
+  };
+
   // Pre-decode audio buffer into memory on mount
   useEffect(() => {
     decodeAudioData(scroll004Sound.dataUri).catch(() => {});
     decodeAudioData(click002Sound.dataUri).catch(() => {});
+
+    const handleInteraction = () => {
+      unlockAudio();
+    };
+
+    window.addEventListener('pointerdown', handleInteraction, { once: true });
+    window.addEventListener('keydown', handleInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
   }, []);
 
   const playAuthenticScrollSound = async () => {
+    if (activeSourceRef.current) return;
     try {
       const ctx = getAudioContext();
       if (ctx.state === 'suspended') {
@@ -83,33 +106,8 @@ export default function Preloader({ onComplete }) {
     } catch (e) {}
   };
 
-  const startBootSequence = () => {
-    if (hasStarted) return;
-    setHasStarted(true);
-
-    // Play authentic original scroll sound file
-    playAuthenticScrollSound();
-  };
-
-  // Listen for initial user interaction to unlock audio & start preloader
+  // Preloader interval timer automatically counting 0% -> 100% on mount
   useEffect(() => {
-    const handleInteraction = () => {
-      startBootSequence();
-    };
-
-    window.addEventListener('pointerdown', handleInteraction, { once: true });
-    window.addEventListener('keydown', handleInteraction, { once: true });
-
-    return () => {
-      window.removeEventListener('pointerdown', handleInteraction);
-      window.removeEventListener('keydown', handleInteraction);
-    };
-  }, [hasStarted]);
-
-  // Preloader interval timer counting 0% -> 100% after boot sequence starts
-  useEffect(() => {
-    if (!hasStarted) return;
-
     document.body.style.overflow = 'hidden';
 
     let currentProgress = 0;
@@ -144,7 +142,7 @@ export default function Preloader({ onComplete }) {
 
         setTimeout(() => {
           triggerExitAnimation();
-        }, 300);
+        }, 250);
       }
     }, 45);
 
@@ -153,12 +151,13 @@ export default function Preloader({ onComplete }) {
       stopAuthenticScrollSound();
       document.body.style.overflow = 'unset';
     };
-  }, [hasStarted]);
+  }, []);
 
   // GSAP Exit Animation: Smooth vertical curtain slide-up
   const triggerExitAnimation = () => {
     if (!containerRef.current) {
       document.body.style.overflow = 'unset';
+      setIsComplete(true);
       if (onComplete) onComplete();
       return;
     }
@@ -180,7 +179,7 @@ export default function Preloader({ onComplete }) {
   return (
     <div
       ref={containerRef}
-      onClick={startBootSequence}
+      onClick={unlockAudio}
       className="fixed inset-0 z-[10000] bg-[#181717] text-[#eeeeee] flex flex-col justify-between p-6 md:p-12 select-none overflow-hidden cursor-pointer"
     >
       {/* Background CAD Dotted Pattern for Preloader */}
@@ -224,12 +223,6 @@ export default function Preloader({ onComplete }) {
           <span className="text-blue-400 font-bold">&gt;</span>
           <span>{telemetryText}</span>
         </div>
-
-        {!hasStarted && (
-          <div className="mt-4 font-mono text-[11px] text-blue-400 tracking-widest uppercase animate-pulse">
-            [ TAP / CLICK ANYWHERE TO INITIALIZE CAD SYSTEM ]
-          </div>
-        )}
       </div>
 
       {/* BOTTOM SPECS BAR */}
