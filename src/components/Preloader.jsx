@@ -15,45 +15,22 @@ const TELEMETRY_STAGES = [
 const MATRIX_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|<>';
 
 export default function Preloader({ onComplete }) {
+  const [hasStarted, setHasStarted] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [telemetryText, setTelemetryText] = useState('BOOTSTRAPPING CAD CORE SYSTEM...');
+  const [telemetryText, setTelemetryText] = useState('CAD CORE SYSTEM READY // AWAITING BOOT INITIALIZATION');
   const [isComplete, setIsComplete] = useState(false);
   
   const containerRef = useRef(null);
   const scannerRef = useRef(null);
   const activeSourceRef = useRef(null);
 
-  // Unlock Web Audio context on user interaction
-  const unlockAudio = async () => {
-    try {
-      const ctx = getAudioContext();
-      if (ctx.state === 'suspended') {
-        await ctx.resume();
-      }
-      playAuthenticScrollSound();
-    } catch (e) {}
-  };
-
   // Pre-decode audio buffer into memory on mount
   useEffect(() => {
     decodeAudioData(scroll004Sound.dataUri).catch(() => {});
     decodeAudioData(click002Sound.dataUri).catch(() => {});
-
-    const handleInteraction = () => {
-      unlockAudio();
-    };
-
-    window.addEventListener('pointerdown', handleInteraction, { once: true });
-    window.addEventListener('keydown', handleInteraction, { once: true });
-
-    return () => {
-      window.removeEventListener('pointerdown', handleInteraction);
-      window.removeEventListener('keydown', handleInteraction);
-    };
   }, []);
 
   const playAuthenticScrollSound = async () => {
-    if (activeSourceRef.current) return;
     try {
       const ctx = getAudioContext();
       if (ctx.state === 'suspended') {
@@ -106,8 +83,34 @@ export default function Preloader({ onComplete }) {
     } catch (e) {}
   };
 
-  // Preloader interval timer automatically counting 0% -> 100% on mount
+  // Start boot sequence explicitly on user click / tap / keypress
+  const startBootSequence = () => {
+    if (hasStarted) return;
+    setHasStarted(true);
+
+    // Play authentic original scroll sound file upon explicit user click
+    playAuthenticScrollSound();
+  };
+
+  // Listen for initial explicit user interaction
   useEffect(() => {
+    const handleInteraction = () => {
+      startBootSequence();
+    };
+
+    window.addEventListener('pointerdown', handleInteraction, { once: true });
+    window.addEventListener('keydown', handleInteraction, { once: true });
+
+    return () => {
+      window.removeEventListener('pointerdown', handleInteraction);
+      window.removeEventListener('keydown', handleInteraction);
+    };
+  }, [hasStarted]);
+
+  // Preloader interval timer counting 0% -> 100% AFTER explicit user click
+  useEffect(() => {
+    if (!hasStarted) return;
+
     document.body.style.overflow = 'hidden';
 
     let currentProgress = 0;
@@ -142,7 +145,7 @@ export default function Preloader({ onComplete }) {
 
         setTimeout(() => {
           triggerExitAnimation();
-        }, 250);
+        }, 300);
       }
     }, 45);
 
@@ -151,7 +154,7 @@ export default function Preloader({ onComplete }) {
       stopAuthenticScrollSound();
       document.body.style.overflow = 'unset';
     };
-  }, []);
+  }, [hasStarted]);
 
   // GSAP Exit Animation: Smooth vertical curtain slide-up
   const triggerExitAnimation = () => {
@@ -179,7 +182,7 @@ export default function Preloader({ onComplete }) {
   return (
     <div
       ref={containerRef}
-      onClick={unlockAudio}
+      onClick={startBootSequence}
       className="fixed inset-0 z-[10000] bg-[#181717] text-[#eeeeee] flex flex-col justify-between p-6 md:p-12 select-none overflow-hidden cursor-pointer"
     >
       {/* Background CAD Dotted Pattern for Preloader */}
@@ -223,6 +226,14 @@ export default function Preloader({ onComplete }) {
           <span className="text-blue-400 font-bold">&gt;</span>
           <span>{telemetryText}</span>
         </div>
+
+        {/* Prominent Explicit Click / Tap Prompt */}
+        {!hasStarted && (
+          <div className="mt-6 inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-blue-500/60 bg-blue-500/10 text-blue-400 font-mono text-xs tracking-widest uppercase animate-pulse shadow-[0_0_20px_rgba(59,130,246,0.3)]">
+            <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+            <span>[ CLICK ANYWHERE TO INITIALIZE CAD SYSTEM ]</span>
+          </div>
+        )}
       </div>
 
       {/* BOTTOM SPECS BAR */}
