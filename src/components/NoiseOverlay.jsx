@@ -51,7 +51,7 @@ export default function NoiseOverlay() {
       `}</style>
 
       <div
-        className="fixed top-[-50%] left-[-50%] w-[200%] h-[200vh] pointer-events-none z-[9999] opacity-[0.05] noise-layer select-none"
+        className="fixed top-[-50%] left-[-50%] w-[200%] h-[200vh] pointer-events-none z-[9999] opacity-[0.15] noise-layer select-none"
         style={{
           backgroundImage: noiseUrl ? `url(${noiseUrl})` : 'none',
           backgroundRepeat: 'repeat',
