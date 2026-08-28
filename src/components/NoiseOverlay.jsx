@@ -20,7 +20,7 @@ export default function NoiseOverlay() {
       data[i] = val;       // R
       data[i + 1] = val;   // G
       data[i + 2] = val;   // B
-      data[i + 3] = Math.floor(Math.random() * 180 + 75); // Stronger noise alpha density
+      data[i + 3] = Math.floor(Math.random() * 100 + 40); // Subtle noise alpha density
     }
 
     ctx.putImageData(imgData, 0, 0);
@@ -51,7 +51,7 @@ export default function NoiseOverlay() {
       `}</style>
 
       <div
-        className="fixed top-[-50%] left-[-50%] w-[200%] h-[200vh] pointer-events-none z-[9999] opacity-[0.16] noise-layer select-none"
+        className="fixed top-[-50%] left-[-50%] w-[200%] h-[200vh] pointer-events-none z-[9999] opacity-[0.05] noise-layer select-none"
         style={{
           backgroundImage: noiseUrl ? `url(${noiseUrl})` : 'none',
           backgroundRepeat: 'repeat',
