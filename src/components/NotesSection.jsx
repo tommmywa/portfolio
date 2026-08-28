@@ -59,10 +59,10 @@ export default function NotesSection() {
   return (
     <section
       ref={sectionRef}
-      className="relative w-full bg-[#222222] text-[#a8a8a8] pt-[640px] md:pt-[820px] lg:pt-[900px] pb-32 md:pb-40 px-6 md:px-16 min-h-[100vh] flex items-center justify-center overflow-hidden z-10 select-none"
+      className="relative w-full bg-[#222222] text-[#a8a8a8] pt-[520px] sm:pt-[680px] md:pt-[780px] lg:pt-[900px] pb-24 md:pb-40 px-4 sm:px-6 md:px-16 min-h-[100vh] flex items-center justify-center overflow-hidden z-10 select-none"
     >
       {/* Background Graphic Asset from Figma (group34233.svg) */}
-      <div className="absolute left-[-100px] md:left-[-220px] top-[20%] w-[600px] md:w-[980px] opacity-35 pointer-events-none z-0">
+      <div className="absolute left-[-120px] sm:left-[-180px] md:left-[-220px] top-[15%] sm:top-[20%] w-[380px] sm:w-[600px] md:w-[980px] opacity-35 pointer-events-none z-0">
         <img
           src="/assets/group34233.svg"
           alt="Vector Graphic Art"
@@ -75,7 +75,7 @@ export default function NotesSection() {
         <div className="lg:col-span-6 min-h-[100px] hidden lg:block" />
 
         {/* Right Column: Fixed-Height Container to Prevent Layout Jumps/Expansion */}
-        <div className="lg:col-span-6 font-departure text-base md:text-lg lg:text-[20px] leading-[32px] md:leading-[36px] text-[#a8a8a8] max-w-[480px] ml-auto lg:ml-8 relative min-h-[580px]">
+        <div className="lg:col-span-6 font-departure text-sm sm:text-base md:text-lg lg:text-[20px] leading-[28px] sm:leading-[32px] md:leading-[36px] text-[#a8a8a8] max-w-[480px] mx-auto lg:ml-8 relative min-h-[420px] sm:min-h-[500px] md:min-h-[580px] mt-8 sm:mt-12 lg:mt-0">
           {/* Invisible Ghost Text Layout footprint so height is 100% fixed upfront */}
           <div
             className="invisible pointer-events-none whitespace-pre-wrap select-none"

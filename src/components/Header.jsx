@@ -61,21 +61,21 @@ export default function Header() {
   }, []);
 
   return (
-    <header className="relative w-full z-20 pt-8 pb-4 px-6 md:px-16 max-w-[1920px] mx-auto select-none">
+    <header className="relative w-full z-20 pt-6 sm:pt-8 pb-4 px-4 sm:px-6 md:px-16 max-w-[1920px] mx-auto select-none">
       {/* Top Row */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
+      <div className="flex flex-row justify-between items-center gap-4">
         {/* Decrypting Name Logo with Tightened Line-Height */}
         <div
           onMouseEnter={triggerDecryption}
           onClick={playClick}
-          className="font-departure text-3xl md:text-5xl font-bold text-[#a8a8a8] tracking-wider hover:text-white transition-colors duration-300 cursor-pointer group leading-[0.85] md:leading-[0.85] space-y-0"
+          className="font-departure text-2xl sm:text-4xl md:text-5xl font-bold text-[#a8a8a8] tracking-wider hover:text-white transition-colors duration-300 cursor-pointer group leading-[0.85] md:leading-[0.85] space-y-0"
         >
           <p className="m-0 p-0 leading-[0.85] block">{line1}</p>
           <p className="m-0 p-0 leading-[0.85] block">{line2}</p>
         </div>
 
         {/* Social Links */}
-        <div className="flex flex-row md:flex-col gap-4 md:gap-2 font-departure text-sm md:text-base text-[#a8a8a8] md:text-right">
+        <div className="flex flex-col sm:flex-row md:flex-col gap-1.5 sm:gap-4 md:gap-2 font-departure text-xs sm:text-sm md:text-base text-[#a8a8a8] text-right">
           <a
             href="https://x.com"
             target="_blank"
@@ -104,23 +104,23 @@ export default function Header() {
         </div>
       </div>
 
-      {/* Subheader Status Bar */}
-      <div className="mt-16 md:mt-24 flex flex-col items-center justify-center gap-2.5 font-departure text-xs md:text-sm text-[#a8a8a8]">
+      {/* Subheader Status Bar - Restored original desktop margin (md:mt-24) */}
+      <div className="mt-10 sm:mt-16 md:mt-24 flex flex-col items-center justify-center gap-2 font-departure text-[11px] sm:text-xs md:text-sm text-[#a8a8a8]">
         {/* Row 1 */}
-        <div className="flex justify-center items-center gap-6">
-          <p className="w-[102px] text-left text-[#eee] m-0">PR DCT</p>
-          <p className="w-[102px] text-center text-[#a8a8a8] whitespace-nowrap m-0">[MUSC LVR]</p>
-          <p className="w-[102px] text-right text-[#eee] m-0">D S GNER</p>
+        <div className="flex justify-center items-center gap-2 sm:gap-6">
+          <p className="w-[80px] sm:w-[102px] text-left text-[#eee] m-0">PR DCT</p>
+          <p className="w-[80px] sm:w-[102px] text-center text-[#a8a8a8] whitespace-nowrap m-0">[MUSC LVR]</p>
+          <p className="w-[80px] sm:w-[102px] text-right text-[#eee] m-0">D S GNER</p>
         </div>
 
         {/* Row 2 */}
-        <div className="flex justify-center items-center gap-6">
-          <p className="w-[102px] text-left text-[#eee] whitespace-nowrap m-0">
+        <div className="flex justify-center items-center gap-2 sm:gap-6">
+          <p className="w-[80px] sm:w-[102px] text-left text-[#eee] whitespace-nowrap m-0">
             [{timeString || '10:07 AM'}]
           </p>
-          <p className="w-[102px] text-center text-[#a8a8a8] m-0">[LAGOS]</p>
-          <div className="w-[102px] flex items-center justify-end gap-1.5 text-[#eee]">
-            <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+          <p className="w-[80px] sm:w-[102px] text-center text-[#a8a8a8] m-0">[LAGOS]</p>
+          <div className="w-[80px] sm:w-[102px] flex items-center justify-end gap-1.5 text-[#eee]">
+            <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-green-500 animate-pulse"></span>
             <span>OPEN</span>
           </div>
         </div>

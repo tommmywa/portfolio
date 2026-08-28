@@ -14,15 +14,19 @@ const TELEMETRY_STAGES = [
 
 const MATRIX_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|<>';
 
-export default function Preloader({ onComplete }) {
+export default function Preloader({ onComplete, skip = false }) {
   const [hasStarted, setHasStarted] = useState(false);
   const [progress, setProgress] = useState(0);
   const [telemetryText, setTelemetryText] = useState('CAD CORE SYSTEM READY // AWAITING BOOT INITIALIZATION');
   const [isComplete, setIsComplete] = useState(false);
+
   
   const containerRef = useRef(null);
   const scannerRef = useRef(null);
-  const activeSourceRef = useRef(null);
+  
+  // Synchronous ref lock to prevent mobile touch double-trigger audio node leaks
+  const hasStartedRef = useRef(false);
+  const activeSourcesRef = useRef([]);
 
   // Pre-decode audio buffer into memory on mount
   useEffect(() => {
@@ -49,18 +53,21 @@ export default function Preloader({ onComplete }) {
       gain.connect(ctx.destination);
 
       source.start(0);
-      activeSourceRef.current = source;
+      activeSourcesRef.current.push(source);
     } catch (e) {
       // Fallback
     }
   };
 
-  const stopAuthenticScrollSound = () => {
-    if (activeSourceRef.current) {
-      try {
-        activeSourceRef.current.stop();
-      } catch (e) {}
-      activeSourceRef.current = null;
+  const stopAllScrollSounds = () => {
+    if (activeSourcesRef.current.length > 0) {
+      activeSourcesRef.current.forEach((source) => {
+        try {
+          source.stop();
+          source.disconnect();
+        } catch (e) {}
+      });
+      activeSourcesRef.current = [];
     }
   };
 
@@ -85,16 +92,20 @@ export default function Preloader({ onComplete }) {
 
   // Start boot sequence explicitly on user click / tap / keypress
   const startBootSequence = () => {
-    if (hasStarted) return;
+    // Synchronous ref check prevents dual trigger from touchstart + click on mobile
+    if (hasStartedRef.current) return;
+    hasStartedRef.current = true;
     setHasStarted(true);
 
     // Play authentic original scroll sound file upon explicit user click
     playAuthenticScrollSound();
   };
 
-  // Listen for initial explicit user interaction
+  // Listen for initial explicit user interaction (disabled when skip=true)
   useEffect(() => {
-    const handleInteraction = () => {
+    if (skip) return;
+
+    const handleInteraction = (e) => {
       startBootSequence();
     };
 
@@ -105,7 +116,7 @@ export default function Preloader({ onComplete }) {
       window.removeEventListener('pointerdown', handleInteraction);
       window.removeEventListener('keydown', handleInteraction);
     };
-  }, [hasStarted]);
+  }, [skip]);
 
   // Preloader interval timer counting 0% -> 100% AFTER explicit user click
   useEffect(() => {
@@ -140,7 +151,7 @@ export default function Preloader({ onComplete }) {
 
       if (currentProgress >= 100) {
         clearInterval(interval);
-        stopAuthenticScrollSound();
+        stopAllScrollSounds();
         playClickSound();
 
         setTimeout(() => {
@@ -151,13 +162,15 @@ export default function Preloader({ onComplete }) {
 
     return () => {
       clearInterval(interval);
-      stopAuthenticScrollSound();
+      stopAllScrollSounds();
       document.body.style.overflow = 'unset';
     };
   }, [hasStarted]);
 
   // GSAP Exit Animation: Smooth vertical curtain slide-up
   const triggerExitAnimation = () => {
+    stopAllScrollSounds();
+
     if (!containerRef.current) {
       document.body.style.overflow = 'unset';
       setIsComplete(true);
@@ -170,6 +183,7 @@ export default function Preloader({ onComplete }) {
       duration: 0.85,
       ease: 'power4.inOut',
       onComplete: () => {
+        stopAllScrollSounds();
         setIsComplete(true);
         document.body.style.overflow = 'unset';
         if (onComplete) onComplete();
@@ -177,13 +191,13 @@ export default function Preloader({ onComplete }) {
     });
   };
 
-  if (isComplete) return null;
+  if (skip || isComplete) return null;
 
   return (
     <div
       ref={containerRef}
       onClick={startBootSequence}
-      className="fixed inset-0 z-[10000] bg-[#181717] text-[#eeeeee] flex flex-col justify-between p-6 md:p-12 select-none overflow-hidden cursor-pointer"
+      className="fixed inset-0 z-[10000] bg-[#181717] text-[#eeeeee] flex flex-col justify-between p-4 sm:p-6 md:p-12 select-none overflow-hidden cursor-pointer"
     >
       {/* Background CAD Dotted Pattern for Preloader */}
       <div className="absolute inset-0 pointer-events-none opacity-20 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-neutral-700 via-transparent to-transparent">
@@ -203,7 +217,7 @@ export default function Preloader({ onComplete }) {
       />
 
       {/* TOP BAR TELEMETRY */}
-      <div className="relative z-10 flex items-center justify-between font-mono text-[10px] sm:text-xs text-neutral-400 tracking-widest uppercase">
+      <div className="relative z-10 flex items-center justify-between font-mono text-[9px] sm:text-xs text-neutral-400 tracking-widest uppercase">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-blue-500 animate-ping inline-block" />
           <span>[ SYSTEM_BOOT: V2.04 ]</span>
@@ -216,21 +230,21 @@ export default function Preloader({ onComplete }) {
       {/* CENTER HUGE PERCENTAGE COUNTER */}
       <div className="relative z-10 my-auto flex flex-col items-center justify-center text-center">
         {/* Main Monospace Counter */}
-        <div className="font-pixel-custom text-7xl sm:text-9xl md:text-[140px] text-[#a8a8a8] tracking-tighter leading-none font-bold">
+        <div className="font-pixel-custom text-6xl sm:text-8xl md:text-[140px] text-[#a8a8a8] tracking-tighter leading-none font-bold">
           {progress.toString().padStart(2, '0')}
-          <span className="text-[#a8a8a8] font-light text-4xl sm:text-6xl md:text-8xl ml-1">%</span>
+          <span className="text-[#a8a8a8] font-light text-3xl sm:text-5xl md:text-8xl ml-1">%</span>
         </div>
 
         {/* Matrix Scramble Telemetry Line */}
-        <div className="mt-6 md:mt-8 font-mono text-xs sm:text-sm text-neutral-300 tracking-widest uppercase h-8 px-4 py-1.5 rounded border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm flex items-center gap-2">
+        <div className="mt-4 sm:mt-6 md:mt-8 font-mono text-[11px] sm:text-xs md:text-sm text-neutral-300 tracking-widest uppercase h-8 px-3 sm:px-4 py-1.5 rounded border border-neutral-800 bg-neutral-900/80 backdrop-blur-sm flex items-center gap-2 max-w-[90vw] truncate">
           <span className="text-blue-400 font-bold">&gt;</span>
-          <span>{telemetryText}</span>
+          <span className="truncate">{telemetryText}</span>
         </div>
 
         {/* Prominent Explicit Click / Tap Prompt */}
         {!hasStarted && (
-          <div className="mt-6 inline-flex items-center gap-3 px-5 py-2.5 rounded-full border border-blue-500/60 bg-blue-500/10 text-blue-400 font-mono text-xs tracking-widest uppercase animate-pulse shadow-[0_0_20px_rgba(59,130,246,0.3)]">
-            <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping" />
+          <div className="mt-5 sm:mt-6 inline-flex items-center gap-2.5 sm:gap-3 px-3.5 sm:px-5 py-2 sm:py-2.5 rounded-full border border-blue-500/60 bg-blue-500/10 text-blue-400 font-mono text-[10px] sm:text-xs tracking-widest uppercase animate-pulse shadow-[0_0_20px_rgba(59,130,246,0.3)] max-w-[90vw] text-center">
+            <span className="w-2 h-2 rounded-full bg-blue-400 animate-ping shrink-0" />
             <span>[ CLICK ANYWHERE TO INITIALIZE CAD SYSTEM ]</span>
           </div>
         )}

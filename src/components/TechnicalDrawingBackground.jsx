@@ -3,7 +3,7 @@ import React from 'react';
 export default function TechnicalDrawingBackground() {
   return (
     <div
-      className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-40 md:opacity-50"
+      className="absolute inset-0 pointer-events-none z-0 overflow-hidden select-none opacity-[0.12] md:opacity-[0.18]"
       style={{
         maskImage: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 16%, rgba(0,0,0,1) 40%, rgba(0,0,0,0.85) 85%, rgba(0,0,0,0) 100%)',
         WebkitMaskImage: 'linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.85) 16%, rgba(0,0,0,1) 40%, rgba(0,0,0,0.85) 85%, rgba(0,0,0,0) 100%)',
@@ -154,9 +154,9 @@ export default function TechnicalDrawingBackground() {
           <circle cx="90" cy="125" r="4" stroke="currentColor" strokeWidth="0.8" fill="#181717" />
 
           {/* Degree Markings */}
-          <text x="90" y="-2" fill="currentColor" fontSize="8" fontFamily="monospace" textAlign="center" opacity="0.6">90°</text>
+          <text x="90" y="-2" fill="currentColor" fontSize="8" fontFamily="monospace" textAnchor="middle" opacity="0.6">90°</text>
           <text x="178" y="94" fill="currentColor" fontSize="8" fontFamily="monospace" opacity="0.6">0°</text>
-          <text x="90" y="188" fill="currentColor" fontSize="8" fontFamily="monospace" textAlign="center" opacity="0.6">270°</text>
+          <text x="90" y="188" fill="currentColor" fontSize="8" fontFamily="monospace" textAnchor="middle" opacity="0.6">270°</text>
           <text x="-12" y="94" fill="currentColor" fontSize="8" fontFamily="monospace" opacity="0.6">180°</text>
         </g>
 

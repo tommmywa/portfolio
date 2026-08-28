@@ -43,41 +43,53 @@ export default function FolderHero() {
     const container = containerRef.current;
     if (!paper || !container) return;
 
-    const ctx = gsap.context(() => {
-      gsap.fromTo(
-        paper,
-        { y: 0, x: 0, rotate: PAPER_PARAMS.startRotate, scale: 1 },
-        {
-          y: PAPER_PARAMS.endY,
-          x: PAPER_PARAMS.endX,
-          rotate: PAPER_PARAMS.endRotate,
-          scale: 0.985,
-          ease: 'power2.inOut',
-          scrollTrigger: {
-            trigger: container,
-            start: 'top 25%',
-            end: 'bottom 15%',
-            scrub: 0.8,
-          },
-        }
-      );
-    }, container);
+    const mm = gsap.matchMedia();
 
-    return () => ctx.revert();
+    mm.add(
+      {
+        isMobile: '(max-width: 767px)',
+        isDesktop: '(min-width: 768px)',
+      },
+      (context) => {
+        const { isMobile } = context.conditions;
+        // Scale displacement proportionally on mobile so paper stays inside folder pocket
+        const scaleFactor = isMobile ? 0.42 : 1.0;
+
+        gsap.fromTo(
+          paper,
+          { y: 0, x: 0, rotate: PAPER_PARAMS.startRotate, scale: 1 },
+          {
+            y: PAPER_PARAMS.endY * scaleFactor,
+            x: PAPER_PARAMS.endX * scaleFactor,
+            rotate: PAPER_PARAMS.endRotate,
+            scale: 0.985,
+            ease: 'power3.out',
+            scrollTrigger: {
+              trigger: container,
+              start: isMobile ? 'top 15%' : 'top 30%',
+              end: isMobile ? 'bottom 10%' : 'bottom 20%',
+              scrub: 0.1,
+            },
+          }
+        );
+      }
+    );
+
+    return () => mm.revert();
   }, []);
 
   return (
     <section
       ref={containerRef}
-      className="relative w-full h-[64vh] min-h-[64vh] bg-[#181717] pt-8 pb-0 flex flex-col items-center justify-start z-20 overflow-visible mb-[-220px] md:mb-[-340px]"
+      className="relative w-full h-[28vh] sm:h-[36vh] md:h-[64vh] min-h-[200px] sm:min-h-[260px] md:min-h-[64vh] bg-[#181717] pt-2 sm:pt-6 md:pt-8 pb-0 flex flex-col items-center justify-start z-20 overflow-visible mb-[-240px] sm:mb-[-300px] md:mb-[-340px] px-4 sm:px-0"
     >
       {/* Architectural CAD Technical Illustration Background Layer */}
       <TechnicalDrawingBackground />
 
-      {/* Interactive Folder Container */}
+      {/* Interactive Folder Container - Restored to original desktop position (md:translate-y-[24%]) */}
       <div
         onClick={handleOpenModal}
-        className="relative w-full max-w-[980px] aspect-[865/745] cursor-pointer group perspective-1000 select-none overflow-visible translate-y-[20%] md:translate-y-[24%]"
+        className="relative w-[92%] sm:w-[94%] md:w-full max-w-[440px] sm:max-w-[620px] md:max-w-[980px] aspect-[865/745] cursor-pointer group perspective-1000 select-none overflow-visible translate-y-[38%] sm:translate-y-[46%] md:translate-y-[24%] mx-auto"
       >
         {/* FOLDER BACK */}
         <div className="absolute inset-0 z-0 flex items-end justify-end">
@@ -119,7 +131,7 @@ export default function FolderHero() {
       {isModalOpen && (
         <div
           onClick={handleCloseModal}
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 md:p-12 animate-fadeIn"
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 md:p-12 animate-fadeIn"
         >
           {/* OUTER WRAPPER CONTAINER: CLOSE BUTTON + PAPER SHEET */}
           <div
@@ -138,7 +150,7 @@ export default function FolderHero() {
 
             {/* PAPER SHEET MODAL BODY */}
             <div
-              className="w-full max-h-[78vh] overflow-y-auto bg-[#FAF6F3] text-black p-8 md:p-14 rounded-lg shadow-2xl border border-neutral-300/80 text-left"
+              className="w-full max-h-[82vh] overflow-y-auto bg-[#FAF6F3] text-black p-5 sm:p-8 md:p-14 rounded-lg shadow-2xl border border-neutral-300/80 text-left"
               style={{
                 backgroundImage: 'radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0)',
                 backgroundSize: '16px 16px',

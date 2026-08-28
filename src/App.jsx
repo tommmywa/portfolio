@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import Lenis from 'lenis';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -11,12 +11,60 @@ import FolderHero from './components/FolderHero';
 import NotesSection from './components/NotesSection';
 import WorkSection from './components/WorkSection';
 import FooterSection from './components/FooterSection';
+import ProjectDetailPage from './components/ProjectDetailPage';
+
+import AdminLogin from './components/admin/AdminLogin';
+import AdminDashboard from './components/admin/AdminDashboard';
+import { cmsStore } from './lib/cms-store';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export default function App() {
+  const [isAdminView, setIsAdminView] = useState(
+    window.location.pathname === '/admin' || window.location.search.includes('admin')
+  );
+  const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+  const [projects, setProjects] = useState([]);
+
+  // true = user came back from a project detail page, so skip the preloader
+  const [skipPreloader, setSkipPreloader] = useState(false);
+
+  const handleOpenProject = (id) => {
+    // Mark that the next return to home should bypass the preloader
+    setSkipPreloader(true);
+    setSelectedProjectId(id);
+  };
+
+  const handleBackFromProject = () => {
+    // skipPreloader stays true — Preloader will receive skip=true and render null
+    setSelectedProjectId(null);
+  };
+
   useEffect(() => {
-    // Initialize Lenis smooth scroll
+    setProjects(cmsStore.getProjects());
+    const unsubscribe = cmsStore.subscribe((updated) => {
+      setProjects(updated);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  // Keyboard shortcut (Ctrl + Shift + A) to toggle Admin Portal
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
+        e.preventDefault();
+        setIsAdminView((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  useEffect(() => {
+    if (isAdminView || selectedProjectId) return;
+
+    // Initialize Lenis smooth scroll for main public archive view
     const lenis = new Lenis({
       duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
@@ -41,12 +89,43 @@ export default function App() {
       gsap.ticker.remove(updateTicker);
       lenis.destroy();
     };
-  }, []);
+  }, [isAdminView, selectedProjectId]);
 
+  // Admin View
+  if (isAdminView) {
+    if (!isAdminAuthenticated) {
+      return <AdminLogin onLoginSuccess={() => setIsAdminAuthenticated(true)} />;
+    }
+    return <AdminDashboard onLogout={() => setIsAdminAuthenticated(false)} />;
+  }
+
+  // Selected Project Detail Page View
+  const selectedProject = projects.find((p) => p.id === selectedProjectId);
+  if (selectedProject) {
+    return (
+      <div className="relative min-h-screen bg-[#181717] text-[#eeeeee] overflow-x-hidden selection:bg-amber-300 selection:text-black">
+        <BackgroundShader />
+        <NoiseOverlay />
+        <ProjectDetailPage
+          project={selectedProject}
+          allProjects={projects}
+          onBack={handleBackFromProject}
+          onSelectProject={handleOpenProject}
+        />
+        <FooterSection />
+      </div>
+    );
+  }
+
+  // Main Portfolio Archive View
   return (
     <div className="relative min-h-screen bg-[#181717] text-[#eeeeee] overflow-x-hidden selection:bg-amber-300 selection:text-black">
-      {/* Architectural Decryption Preloader Screen */}
-      <Preloader />
+      {/*
+        Preloader is always mounted here but receives skip=true when the user
+        came back from a project detail page — in that case Preloader renders null
+        immediately without registering any event listeners.
+      */}
+      <Preloader skip={skipPreloader} />
 
       {/* WebGL Background Shader Layer */}
       <BackgroundShader />
@@ -60,7 +139,7 @@ export default function App() {
         <main>
           <FolderHero />
           <NotesSection />
-          <WorkSection />
+          <WorkSection onSelectProject={handleOpenProject} />
         </main>
         <FooterSection />
       </div>

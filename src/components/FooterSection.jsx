@@ -54,7 +54,15 @@ export default function FooterSection() {
       {/* Footer Bottom Bar */}
       <div className="max-w-[1920px] mx-auto px-6 md:px-16 pt-8 border-t border-neutral-800/60 flex flex-col md:flex-row justify-between items-center gap-4 font-departure text-xs text-neutral-400">
         <p>© 2026 AYODEJI OGUNDIPE. ALL RIGHTS RESERVED.</p>
-        <p className="text-neutral-400">DESIGNED IN FIGMA • BUILT WITH VITE, THREE.JS & GSAP</p>
+        <div className="flex items-center gap-4">
+          <span className="text-neutral-400">DESIGNED IN FIGMA • BUILT WITH VITE, THREE.JS & GSAP</span>
+          <a
+            href="/admin"
+            className="hover:text-blue-400 font-mono text-[10px] text-neutral-500 uppercase px-2 py-0.5 border border-neutral-800 rounded bg-neutral-900 transition-colors"
+          >
+            [ CAD CMS ]
+          </a>
+        </div>
       </div>
     </footer>
   );

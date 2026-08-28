@@ -4,78 +4,28 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { FolderGit2 } from 'lucide-react';
 import WorkImageCanvas from './WorkImageCanvas';
 import TechnicalDrawingBackground from './TechnicalDrawingBackground';
+import { cmsStore } from '../lib/cms-store';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const PROJECTS = [
-  {
-    id: '01',
-    title: 'Afkit.ng Commerce',
-    category: 'E-Commerce & Digital Products',
-    date: '2026',
-    video: 'https://assets.mixkit.co/videos/preview/mixkit-digital-animation-of-screens-41483-large.mp4',
-    image: 'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1400&auto=format&fit=crop',
-    link: '#',
-    description: 'Next-generation commerce platform built for high-scale digital & physical inventory.',
-  },
-  {
-    id: '02',
-    title: 'Fintech Dashboard',
-    category: 'Financial Analytics & SaaS',
-    date: '2025',
-    image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1400&auto=format&fit=crop',
-    link: '#',
-    description: 'Real-time financial telemetry dashboard with predictive portfolio intelligence.',
-  },
-  {
-    id: '03',
-    title: 'Aura Sound System',
-    category: 'Audio & Spatial Experience',
-    date: '2025',
-    video: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-connection-dots-and-lines-41551-large.mp4',
-    image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1400&auto=format&fit=crop',
-    link: '#',
-    description: 'Spatial audio web engine rendering real-time acoustic environments.',
-  },
-  {
-    id: '04',
-    title: 'Neon Horizon OS',
-    category: 'Cyberpunk Web Interface',
-    date: '2024',
-    image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1400&auto=format&fit=crop',
-    link: '#',
-    description: 'Futuristic desktop shell interface with custom window compositor & node graph.',
-  },
-  {
-    id: '05',
-    title: 'Kinetic Motion Studio',
-    category: '3D Shader & Physics Engine',
-    date: '2024',
-    video: 'https://assets.mixkit.co/videos/preview/mixkit-tunnel-of-futuristic-neon-lights-41555-large.mp4',
-    image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1400&auto=format&fit=crop',
-    link: '#',
-    description: 'Experimental WebGL physics environment exploring procedural particle dynamics.',
-  },
-  {
-    id: '06',
-    title: 'Quantum Synthesizer',
-    category: 'Interactive Audio & WebGL',
-    date: '2024',
-    image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1400&auto=format&fit=crop',
-    link: '#',
-    description: 'Generative synthesizer interface translating user gestures into generative spatial sound.',
-  },
-];
-
 const RANDOM_CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|<>?';
 
-export default function WorkSection() {
+export default function WorkSection({ onSelectProject }) {
   const sectionRef = useRef(null);
   const titleRef = useRef(null);
   const cardsRef = useRef([]);
+  const [projects, setProjects] = useState([]);
   const [hoveredCard, setHoveredCard] = useState(null);
   const [scrollVelocity, setScrollVelocity] = useState(0);
   const [workTitle, setWorkTitle] = useState('WORK');
+
+  useEffect(() => {
+    setProjects(cmsStore.getProjects());
+    const unsubscribe = cmsStore.subscribe((updated) => {
+      setProjects(updated);
+    });
+    return () => unsubscribe();
+  }, []);
 
   const scrambleWorkTitle = () => {
     const targetText = 'WORK';
@@ -161,12 +111,12 @@ export default function WorkSection() {
     <section
       ref={sectionRef}
       id="work-section"
-      className="relative w-full bg-[#181717] text-white py-24 sm:py-32 px-6 sm:px-10 md:px-16 z-10 overflow-hidden select-none"
+      className="relative w-full bg-[#181717] text-white py-20 sm:py-28 px-3 sm:px-5 md:px-6 lg:px-8 z-10 overflow-hidden select-none"
     >
       {/* Background CAD Technical Grid Layer */}
       <TechnicalDrawingBackground />
 
-      <div className="relative z-10 max-w-[1600px] mx-auto">
+      <div className="relative z-10 w-full max-w-[1920px] mx-auto">
         {/* Section Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-16 md:mb-20 pb-8 border-b border-neutral-800">
           <div>
@@ -181,30 +131,38 @@ export default function WorkSection() {
 
           <div className="font-departure text-xs text-neutral-400 tracking-widest flex items-center gap-3">
             <FolderGit2 className="w-4 h-4 text-[#a8a8a8]" />
-            <span>[ {String(PROJECTS.length).padStart(2, '0')} ARCHIVED PROJECTS ]</span>
+            <span>[ {String(projects.length).padStart(2, '0')} ARCHIVED PROJECTS ]</span>
           </div>
         </div>
 
-        {/* 2-Column Equal Dimension Grid Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 lg:gap-14 items-stretch">
-          {PROJECTS.map((project, index) => {
+        {/* 2-Column Equal Dimension Grid Layout - Tightened gap for bigger cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6 md:gap-7 lg:gap-8 items-stretch">
+          {projects.map((project, index) => {
             const isHovered = hoveredCard === project.id;
+            const ratioMap = {
+              '16/9': 'aspect-[16/10]',
+              '1/1': 'aspect-square',
+              '4/5': 'aspect-[4/5]',
+              '21/9': 'aspect-[16/9]',
+            };
+            const aspectClass = ratioMap[project.aspectRatio] || 'aspect-[16/10]';
 
             return (
               <div
                 key={project.id}
                 ref={(el) => (cardsRef.current[index] = el)}
+                onClick={() => onSelectProject && onSelectProject(project.id)}
                 onMouseEnter={() => setHoveredCard(project.id)}
                 onMouseLeave={() => setHoveredCard(null)}
                 style={{
-                  transform: `skewY(${scrollVelocity * 1.6}deg) rotate(${scrollVelocity * 0.35}deg) translateY(${scrollVelocity * 1.8}px) scale(${isHovered ? 1.02 : 1.0})`,
+                  transform: `skewY(${scrollVelocity * 0.4}deg) rotate(${scrollVelocity * 0.08}deg) translateY(${scrollVelocity * 0.4}px) scale(${isHovered ? 1.015 : 1.0})`,
                   transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease',
                   transformOrigin: 'center center',
                 }}
                 className="group relative flex flex-col cursor-pointer"
               >
-                {/* Equal Large Square Dimension Media Container */}
-                <div className="relative w-full aspect-square rounded-2xl overflow-hidden shadow-2xl transition-all duration-500">
+                {/* Taller Dynamic Aspect Ratio Media Container with Tiny Rounded Corners */}
+                <div className={`relative w-full ${aspectClass} min-h-[340px] sm:min-h-[440px] md:min-h-[500px] rounded-sm overflow-hidden shadow-2xl transition-all duration-500`}>
                   {/* WebGL Warp Canvas */}
                   <WorkImageCanvas
                     imageUrl={project.image}
