@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Upload, Video, Image as ImageIcon, Check } from 'lucide-react';
 import WorkImageCanvas from '../WorkImageCanvas';
 import { assetDB } from '../../lib/asset-db';
+import { uploadMediaToSupabase, isSupabaseConfigured } from '../../lib/supabase';
 
 export default function ProjectModal({ project, onSave, onClose }) {
   const [formData, setFormData] = useState({
@@ -37,6 +38,14 @@ export default function ProjectModal({ project, onSave, onClose }) {
   const handleFileUpload = async (e, field) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (isSupabaseConfigured()) {
+      const { url, error } = await uploadMediaToSupabase(file, 'projects');
+      if (url && !error) {
+        setFormData((prev) => ({ ...prev, [field]: url }));
+        return;
+      }
+    }
 
     const assetId = `asset_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     await assetDB.saveAsset(assetId, file);
@@ -268,7 +277,7 @@ export default function ProjectModal({ project, onSave, onClose }) {
 
             <div>
               <label className="block text-neutral-400 uppercase tracking-widest mb-1.5">
-                FULL CASE STUDY & DESIGN RATIONALE (DETAIL PAGE)
+                FULL CASE STUDY & DESIGN RATIONALE (OPTIONAL)
               </label>
               <textarea
                 name="longDescription"

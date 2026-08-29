@@ -21,6 +21,7 @@ import {
 import WorkImageCanvas from '../WorkImageCanvas';
 import TechnicalDrawingBackground from '../TechnicalDrawingBackground';
 import { assetDB, isVideoMedia } from '../../lib/asset-db';
+import { uploadMediaToSupabase, isSupabaseConfigured } from '../../lib/supabase';
 
 const POPULAR_TAGS = [
   'React',
@@ -127,6 +128,14 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (isSupabaseConfigured()) {
+      const { url, error } = await uploadMediaToSupabase(file, 'hero');
+      if (url && !error) {
+        setFormData((prev) => ({ ...prev, [field]: url }));
+        return;
+      }
+    }
+
     const assetId = `asset_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
     await assetDB.saveAsset(assetId, file);
     setFormData((prev) => ({ ...prev, [field]: assetId }));
@@ -135,6 +144,18 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
   const handleGalleryUpload = async (e, index) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (isSupabaseConfigured()) {
+      const { url, error } = await uploadMediaToSupabase(file, 'gallery');
+      if (url && !error) {
+        setFormData((prev) => {
+          const nextGallery = [...(prev.gallery || ['', '', '', ''])];
+          nextGallery[index] = url;
+          return { ...prev, gallery: nextGallery };
+        });
+        return;
+      }
+    }
 
     const isVid = file.type.startsWith('video/');
     const typePrefix = isVid ? 'vid' : 'img';
@@ -196,8 +217,10 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
 
     setIsSaving(true);
     // Format payload
+    const cleanLongDesc = formData.longDescription ? formData.longDescription.trim() : '';
     const projectPayload = {
       ...formData,
+      longDescription: cleanLongDesc,
       tags: formData.tags,
       // Clean up empty trailing gallery slots
       gallery: formData.gallery.filter((g) => g && g.trim() !== ''),
@@ -545,14 +568,19 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
                     />
                   </div>
 
-                  {/* Long Form Case Study */}
+                  {/* Long Form Case Study (Optional) */}
                   <div>
                     <div className="flex items-center justify-between mb-1.5">
-                      <label className="block text-neutral-400 uppercase tracking-widest text-[11px]">
-                        FULL CASE STUDY & DESIGN RATIONALE (EXTENDED)
-                      </label>
+                      <div className="flex items-center gap-2">
+                        <label className="block text-neutral-400 uppercase tracking-widest text-[11px]">
+                          FULL CASE STUDY & DESIGN RATIONALE
+                        </label>
+                        <span className="text-[9px] px-1.5 py-0.2 rounded bg-neutral-950 border border-neutral-800 text-neutral-400 font-bold uppercase">
+                          OPTIONAL
+                        </span>
+                      </div>
                       <span className="text-[10px] text-neutral-500">
-                        Multi-paragraph with bullet points support
+                        Leave blank if not needed (won't show on site)
                       </span>
                     </div>
                     <textarea
@@ -560,11 +588,11 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
                       value={formData.longDescription}
                       onChange={handleChange}
                       rows={8}
-                      placeholder={`Provide a deep-dive case study breakdown:
+                      placeholder={`Optional extended case study breakdown (leave empty to omit):
 
 • Architectural Challenge & Context
 • Engineering and Interaction Design Strategy
-• Quantified Results & Metrics (e.g. 42% increase in checkout speed)`}
+• Quantified Results & Metrics`}
                       className="w-full bg-neutral-950 border border-neutral-800 focus:border-blue-500 rounded-lg p-3.5 text-white focus:outline-none transition-colors leading-relaxed font-sans text-xs whitespace-pre-wrap"
                     />
                   </div>
@@ -1016,7 +1044,7 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
                     </p>
                   </div>
 
-                  {formData.longDescription && (
+                  {formData.longDescription && formData.longDescription.trim() !== '' && (
                     <div className="pt-6 border-t border-neutral-800/80 space-y-3">
                       <div className="font-mono text-xs text-neutral-400 uppercase tracking-widest mb-1">
                         [ CASE STUDY & DESIGN RATIONALE ]
@@ -1031,8 +1059,8 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
 
               {/* Media Showcase (Hero + 4 Square Gallery Grid) */}
               <div className="space-y-8">
-                {/* Hero Asset */}
-                <div className="relative w-full aspect-[16/9] max-h-[600px] rounded-sm overflow-hidden bg-neutral-950 border border-neutral-800 shadow-2xl">
+                {/* Hero Asset (Strict 16:9 Landscape Aspect Ratio) */}
+                <div className="relative w-full aspect-[16/9] rounded-sm overflow-hidden bg-neutral-950 border border-neutral-800 shadow-2xl flex items-center justify-center">
                   {resolvedHeroVid ? (
                     <video
                       src={resolvedHeroVid}
@@ -1040,13 +1068,13 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
                       loop
                       autoPlay
                       playsInline
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   ) : resolvedHeroImg ? (
                     <img
                       src={resolvedHeroImg}
                       alt={formData.title}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-neutral-600 text-sm">

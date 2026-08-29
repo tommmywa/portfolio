@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { ArrowLeft, ExternalLink, ShieldCheck, Tag, User, Layers, Calendar, ArrowRight } from 'lucide-react';
 import TechnicalDrawingBackground from './TechnicalDrawingBackground';
-import FooterSection from './FooterSection';
 import { assetDB, isVideoMedia } from '../lib/asset-db';
 
 export default function ProjectDetailPage({ project, allProjects = [], onBack, onSelectProject }) {
@@ -210,7 +209,7 @@ export default function ProjectDetailPage({ project, allProjects = [], onBack, o
               </p>
             </div>
 
-            {project.longDescription && (
+            {project.longDescription && project.longDescription.trim() !== '' && (
               <div className="pt-6 border-t border-neutral-800/80 space-y-3">
                 <div className="font-mono text-xs text-neutral-400 uppercase tracking-widest mb-1">
                   [ CASE STUDY & DESIGN RATIONALE ]
@@ -225,8 +224,8 @@ export default function ProjectDetailPage({ project, allProjects = [], onBack, o
 
         {/* Project Media Showcase (Figma Node 512:164 Layout) */}
         <div className="flex flex-col gap-8 sm:gap-10 w-full pt-4">
-          {/* Main Full-Width Hero Media Frame */}
-          <div className="relative w-full aspect-[16/9] max-h-[720px] rounded-sm overflow-hidden bg-[#222222] border border-neutral-800/80 shadow-2xl">
+          {/* Main Full-Width Hero Media Frame (Strict 16:9 Landscape Aspect Ratio with object-contain fit) */}
+          <div className="relative w-full aspect-[16/9] rounded-sm overflow-hidden bg-[#181717] border border-neutral-800/80 shadow-2xl flex items-center justify-center">
             {activeVid ? (
               <video
                 src={activeVid}
@@ -234,13 +233,13 @@ export default function ProjectDetailPage({ project, allProjects = [], onBack, o
                 loop
                 autoPlay
                 playsInline
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             ) : activeImg ? (
               <img
                 src={activeImg}
                 alt={project.title}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-contain"
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-neutral-600 text-sm">
@@ -308,9 +307,6 @@ export default function ProjectDetailPage({ project, allProjects = [], onBack, o
           </div>
         )}
       </div>
-
-      {/* Embedded Footer Section */}
-      <FooterSection />
     </div>
   );
 }

@@ -140,12 +140,12 @@ export default function WorkSection({ onSelectProject }) {
           {projects.map((project, index) => {
             const isHovered = hoveredCard === project.id;
             const ratioMap = {
-              '16/9': 'aspect-[16/10]',
+              '16/9': 'aspect-[16/9]',
               '1/1': 'aspect-square',
               '4/5': 'aspect-[4/5]',
-              '21/9': 'aspect-[16/9]',
+              '21/9': 'aspect-[21/9]',
             };
-            const aspectClass = ratioMap[project.aspectRatio] || 'aspect-[16/10]';
+            const aspectClass = ratioMap[project.aspectRatio] || 'aspect-[16/9]';
 
             return (
               <div
@@ -161,8 +161,8 @@ export default function WorkSection({ onSelectProject }) {
                 }}
                 className="group relative flex flex-col cursor-pointer"
               >
-                {/* Taller Dynamic Aspect Ratio Media Container with Tiny Rounded Corners */}
-                <div className={`relative w-full ${aspectClass} min-h-[340px] sm:min-h-[440px] md:min-h-[500px] rounded-sm overflow-hidden shadow-2xl transition-all duration-500`}>
+                {/* 16:9 Landscape Aspect Ratio Media Container */}
+                <div className={`relative w-full ${aspectClass} rounded-sm overflow-hidden shadow-2xl transition-all duration-500`}>
                   {/* WebGL Warp Canvas */}
                   <WorkImageCanvas
                     imageUrl={project.image}

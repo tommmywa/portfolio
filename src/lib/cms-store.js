@@ -1,6 +1,7 @@
-// CMS Data Store & Persistence Engine for Portfolio Works
+// CMS Data Store & Persistence Engine with Supabase Cloud Sync
+import { supabase, isSupabaseConfigured } from './supabase';
 
-const DEFAULT_PROJECTS = [
+export const DEFAULT_PROJECTS = [
   {
     id: '01',
     title: 'Afkit.ng Commerce',
@@ -41,6 +42,12 @@ Key Impact:
     liveUrl: 'https://example.com',
     aspectRatio: '16/9',
     image: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1400&auto=format&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1400&auto=format&fit=crop',
+    ],
     link: '#',
     description: 'Real-time financial telemetry dashboard with predictive portfolio intelligence.',
     longDescription: `Apex Fintech Dashboard is an institutional-grade financial analytics suite created for fund managers and quantitative traders.
@@ -64,6 +71,12 @@ Key Features:
     aspectRatio: '16/9',
     video: 'https://assets.mixkit.co/videos/preview/mixkit-abstract-technology-connection-dots-and-lines-41551-large.mp4',
     image: 'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1400&auto=format&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1400&auto=format&fit=crop',
+    ],
     link: '#',
     description: 'Spatial audio web engine rendering real-time acoustic environments.',
     longDescription: `Aura Sound System is an experimental web-based spatial audio engine that renders real-time 3D acoustic environments inside the browser.
@@ -86,6 +99,12 @@ Key Technical Highlights:
     liveUrl: 'https://example.com',
     aspectRatio: '16/9',
     image: 'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1400&auto=format&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1400&auto=format&fit=crop',
+    ],
     link: '#',
     description: 'Futuristic desktop shell interface with custom window compositor & node graph.',
     longDescription: `Neon Horizon OS is a web-based cyberpunk operating system concept featuring a custom window manager, terminal emulator, and visual node editor.
@@ -104,6 +123,12 @@ Built with a strict monospace typography system and dark glassmorphic panels, it
     aspectRatio: '16/9',
     video: 'https://assets.mixkit.co/videos/preview/mixkit-tunnel-of-futuristic-neon-lights-41555-large.mp4',
     image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1400&auto=format&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1400&auto=format&fit=crop',
+    ],
     link: '#',
     description: 'Experimental WebGL physics environment exploring procedural particle dynamics.',
     longDescription: `Kinetic Motion Studio is a WebGL physics sandbox exploring real-time fluid dynamics, particle collisions, and procedural lighting in browser environments.`,
@@ -119,6 +144,12 @@ Built with a strict monospace typography system and dark glassmorphic panels, it
     liveUrl: 'https://example.com',
     aspectRatio: '16/9',
     image: 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1400&auto=format&fit=crop',
+    gallery: [
+      'https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=1400&auto=format&fit=crop',
+      'https://images.unsplash.com/photo-1526374965328-7f61d4dc18c5?q=80&w=1400&auto=format&fit=crop',
+    ],
     link: '#',
     description: 'Generative synthesizer interface translating user gestures into generative spatial sound.',
     longDescription: `Quantum Synthesizer bridges digital signal processing with visual art, turning mouse and touch inputs into evolving ambient soundscapes and generative graphics.`,
@@ -127,6 +158,53 @@ Built with a strict monospace typography system and dark glassmorphic panels, it
 
 const STORAGE_KEY = 'portfolio_cms_projects_v1';
 const listeners = new Set();
+
+const mapFromDb = (row) => ({
+  id: String(row.id),
+  title: row.title || '',
+  category: row.category || '',
+  date: row.date || '',
+  client: row.client || '',
+  role: row.role || '',
+  tags: Array.isArray(row.tags)
+    ? row.tags
+    : typeof row.tags === 'string'
+    ? JSON.parse(row.tags || '[]')
+    : [],
+  liveUrl: row.live_url || '#',
+  aspectRatio: row.aspect_ratio || '16/9',
+  image: row.image || '',
+  video: row.video || '',
+  gallery: Array.isArray(row.gallery)
+    ? row.gallery
+    : typeof row.gallery === 'string'
+    ? JSON.parse(row.gallery || '[]')
+    : [],
+  link: row.link || '#',
+  description: row.description || '',
+  longDescription: row.long_description || '',
+  sortOrder: typeof row.sort_order === 'number' ? row.sort_order : 0,
+});
+
+const mapToDb = (project, index = 0) => ({
+  id: String(project.id),
+  title: project.title || '',
+  category: project.category || '',
+  date: project.date || '',
+  client: project.client || '',
+  role: project.role || '',
+  tags: Array.isArray(project.tags) ? project.tags : [],
+  live_url: project.liveUrl || '#',
+  aspect_ratio: project.aspectRatio || '16/9',
+  image: project.image || '',
+  video: project.video || '',
+  gallery: Array.isArray(project.gallery) ? project.gallery : [],
+  link: project.link || '#',
+  description: project.description || '',
+  long_description: project.longDescription || '',
+  sort_order: typeof project.sortOrder === 'number' ? project.sortOrder : index,
+  updated_at: new Date().toISOString(),
+});
 
 export const cmsStore = {
   getProjects() {
@@ -139,32 +217,121 @@ export const cmsStore = {
     return DEFAULT_PROJECTS;
   },
 
-  saveProjects(projects) {
+  saveLocal(projects) {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(projects));
       listeners.forEach((listener) => listener(projects));
     } catch (e) {
-      console.error('Failed to save to CMS store', e);
+      console.error('Failed to save to local CMS store', e);
     }
   },
 
-  saveProject(project) {
+  async fetchFromSupabase() {
+    if (!isSupabaseConfigured() || !supabase) {
+      return this.getProjects();
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        console.warn('Supabase fetch warning:', error.message);
+        return this.getProjects();
+      }
+
+      if (data && data.length > 0) {
+        const mapped = data.map(mapFromDb);
+        this.saveLocal(mapped);
+        return mapped;
+      } else {
+        // If Supabase table is completely empty, seed with DEFAULT_PROJECTS
+        console.log('Supabase projects table is empty, seeding defaults...');
+        await this.syncDefaultsToSupabase();
+        return this.getProjects();
+      }
+    } catch (e) {
+      console.error('Error fetching from Supabase:', e);
+      return this.getProjects();
+    }
+  },
+
+  async saveProjects(projects) {
+    this.saveLocal(projects);
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const rows = projects.map((p, idx) => mapToDb(p, idx));
+        const { error } = await supabase.from('projects').upsert(rows, { onConflict: 'id' });
+        if (error) {
+          console.error('Supabase bulk upsert error:', error);
+        }
+      } catch (err) {
+        console.error('Failed to sync projects to Supabase:', err);
+      }
+    }
+  },
+
+  async saveProject(project) {
     const projects = this.getProjects();
     const existingIndex = projects.findIndex((p) => p.id === project.id);
     let updated;
+    let targetIndex = existingIndex;
+
     if (existingIndex >= 0) {
       updated = [...projects];
       updated[existingIndex] = { ...updated[existingIndex], ...project };
     } else {
+      targetIndex = projects.length;
       updated = [...projects, project];
     }
-    this.saveProjects(updated);
+    this.saveLocal(updated);
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const row = mapToDb(project, targetIndex);
+        const { error } = await supabase.from('projects').upsert(row, { onConflict: 'id' });
+        if (error) {
+          console.error('Supabase project upsert error:', error);
+        }
+      } catch (err) {
+        console.error('Failed to save project to Supabase:', err);
+      }
+    }
   },
 
-  deleteProject(id) {
+  async deleteProject(id) {
     const projects = this.getProjects();
     const updated = projects.filter((p) => p.id !== id);
-    this.saveProjects(updated);
+    this.saveLocal(updated);
+
+    if (isSupabaseConfigured() && supabase) {
+      try {
+        const { error } = await supabase.from('projects').delete().eq('id', id);
+        if (error) {
+          console.error('Supabase delete error:', error);
+        }
+      } catch (err) {
+        console.error('Failed to delete project from Supabase:', err);
+      }
+    }
+  },
+
+  async syncDefaultsToSupabase() {
+    if (!isSupabaseConfigured() || !supabase) return;
+    try {
+      const rows = DEFAULT_PROJECTS.map((p, idx) => mapToDb(p, idx));
+      const { error } = await supabase.from('projects').upsert(rows, { onConflict: 'id' });
+      if (error) {
+        console.error('Failed to seed defaults to Supabase:', error);
+      } else {
+        this.saveLocal(DEFAULT_PROJECTS);
+      }
+    } catch (e) {
+      console.error('Error syncing defaults to Supabase:', e);
+    }
   },
 
   resetToDefaults() {
@@ -176,3 +343,18 @@ export const cmsStore = {
     return () => listeners.delete(listener);
   },
 };
+
+// Initiate background fetch on module load
+if (typeof window !== 'undefined') {
+  cmsStore.fetchFromSupabase();
+
+  // Setup Realtime listener if Supabase is configured
+  if (isSupabaseConfigured() && supabase) {
+    supabase
+      .channel('public:projects')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'projects' }, () => {
+        cmsStore.fetchFromSupabase();
+      })
+      .subscribe();
+  }
+}

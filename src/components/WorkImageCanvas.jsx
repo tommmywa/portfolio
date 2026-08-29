@@ -23,7 +23,7 @@ export default function WorkImageCanvas({ imageUrl, videoUrl, isHovered = false 
   const activeVid = resolvedVideo || videoUrl;
 
   return (
-    <div className="relative w-full h-full min-h-[340px] sm:min-h-[440px] md:min-h-[500px] overflow-hidden bg-[#181717] group">
+    <div className="relative w-full h-full aspect-[16/9] overflow-hidden bg-[#181717] flex items-center justify-center group">
       {activeVid ? (
         <video
           src={activeVid}
@@ -31,7 +31,7 @@ export default function WorkImageCanvas({ imageUrl, videoUrl, isHovered = false 
           loop
           autoPlay
           playsInline
-          className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
+          className={`w-full h-full object-contain transition-transform duration-700 ease-out ${
             isHovered ? 'scale-105' : 'scale-100'
           }`}
         />
@@ -39,7 +39,7 @@ export default function WorkImageCanvas({ imageUrl, videoUrl, isHovered = false 
         <img
           src={activeImg}
           alt="Project Preview"
-          className={`w-full h-full object-cover transition-transform duration-700 ease-out ${
+          className={`w-full h-full object-contain transition-transform duration-700 ease-out ${
             isHovered ? 'scale-105' : 'scale-100'
           }`}
         />
