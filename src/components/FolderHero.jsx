@@ -37,6 +37,24 @@ export default function FolderHero() {
     setIsModalOpen(false);
   };
 
+  // Lock background scroll and pause Lenis when modal is open
+  useEffect(() => {
+    if (isModalOpen) {
+      if (window.lenis) window.lenis.stop();
+      document.body.style.overflow = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+    } else {
+      if (window.lenis) window.lenis.start();
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    }
+    return () => {
+      if (window.lenis) window.lenis.start();
+      document.body.style.overflow = '';
+      document.documentElement.style.overflow = '';
+    };
+  }, [isModalOpen]);
+
   // GSAP ScrollTrigger Animation (Paper animates back into folder upright on scroll)
   useEffect(() => {
     const paper = paperRef.current;
@@ -131,11 +149,13 @@ export default function FolderHero() {
       {isModalOpen && (
         <div
           onClick={handleCloseModal}
-          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 md:p-12 animate-fadeIn"
+          data-lenis-prevent
+          className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 md:p-12 animate-fadeIn touch-none"
         >
           {/* OUTER WRAPPER CONTAINER: CLOSE BUTTON + PAPER SHEET */}
           <div
             onClick={(e) => e.stopPropagation()}
+            data-lenis-prevent
             className="relative w-full max-w-3xl flex flex-col items-end gap-3 font-departure select-text my-auto"
           >
             {/* STANDALONE OUTSIDE CLOSE BUTTON - SITS 100% OUTSIDE ABOVE TOP RIGHT OF PAPER */}
@@ -150,10 +170,13 @@ export default function FolderHero() {
 
             {/* PAPER SHEET MODAL BODY */}
             <div
-              className="w-full max-h-[82vh] overflow-y-auto bg-[#FAF6F3] text-black p-5 sm:p-8 md:p-14 rounded-lg shadow-2xl border border-neutral-300/80 text-left"
+              data-lenis-prevent
+              className="w-full max-h-[75vh] sm:max-h-[82vh] overflow-y-auto overscroll-contain bg-[#FAF6F3] text-black p-5 sm:p-8 md:p-14 rounded-lg shadow-2xl border border-neutral-300/80 text-left"
               style={{
                 backgroundImage: 'radial-gradient(rgba(0,0,0,0.03) 1px, transparent 0)',
                 backgroundSize: '16px 16px',
+                WebkitOverflowScrolling: 'touch',
+                touchAction: 'pan-y',
               }}
             >
               {/* PAPER HEADER BADGE */}
