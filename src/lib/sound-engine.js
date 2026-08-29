@@ -14,14 +14,21 @@ export async function decodeAudioData(dataUri) {
   if (cached) return cached;
 
   const ctx = getAudioContext();
-  const base64 = dataUri.split(",")[1];
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
+  let arrayBuffer;
+  try {
+    const res = await fetch(dataUri);
+    arrayBuffer = await res.arrayBuffer();
+  } catch (e) {
+    const base64 = dataUri.split(",")[1];
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    arrayBuffer = bytes.buffer;
   }
 
-  const audioBuffer = await ctx.decodeAudioData(bytes.buffer.slice(0));
+  const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
   bufferCache.set(dataUri, audioBuffer);
   return audioBuffer;
 }

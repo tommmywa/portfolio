@@ -20,64 +20,105 @@ export default function Preloader({ onComplete, skip = false }) {
   const [telemetryText, setTelemetryText] = useState('CAD CORE SYSTEM READY // AWAITING BOOT INITIALIZATION');
   const [isComplete, setIsComplete] = useState(false);
 
-  
   const containerRef = useRef(null);
   const scannerRef = useRef(null);
-  
+
   // Synchronous ref lock to prevent mobile touch double-trigger audio node leaks
   const hasStartedRef = useRef(false);
+  const isPreloaderActiveRef = useRef(true);
   const activeSourcesRef = useRef([]);
+  const scrollBufferRef = useRef(null);
+  const clickBufferRef = useRef(null);
 
   // Pre-decode audio buffer into memory on mount
   useEffect(() => {
-    decodeAudioData(scroll004Sound.dataUri).catch(() => {});
-    decodeAudioData(click002Sound.dataUri).catch(() => {});
+    let isMounted = true;
+    decodeAudioData(scroll004Sound.dataUri)
+      .then((buf) => {
+        if (isMounted) scrollBufferRef.current = buf;
+      })
+      .catch(() => {});
+
+    decodeAudioData(click002Sound.dataUri)
+      .then((buf) => {
+        if (isMounted) clickBufferRef.current = buf;
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const playAuthenticScrollSound = async () => {
+    if (!isPreloaderActiveRef.current) return;
+
     try {
       const ctx = getAudioContext();
       if (ctx.state === 'suspended') {
         await ctx.resume();
       }
 
-      const buffer = await decodeAudioData(scroll004Sound.dataUri);
+      if (!isPreloaderActiveRef.current) return;
+
+      const buffer = scrollBufferRef.current || (await decodeAudioData(scroll004Sound.dataUri));
+      if (!isPreloaderActiveRef.current || !buffer) return;
+
       const source = ctx.createBufferSource();
       const gain = ctx.createGain();
 
       source.buffer = buffer;
       source.loop = true;
-      gain.gain.value = 0.45;
+      gain.gain.setValueAtTime(0.01, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.45, ctx.currentTime + 0.05);
 
       source.connect(gain);
       gain.connect(ctx.destination);
 
       source.start(0);
-      activeSourcesRef.current.push(source);
+      activeSourcesRef.current.push({ source, gain });
     } catch (e) {
-      // Fallback
+      // Fallback silently if audio is blocked
     }
   };
 
   const stopAllScrollSounds = () => {
     if (activeSourcesRef.current.length > 0) {
-      activeSourcesRef.current.forEach((source) => {
+      const ctx = getAudioContext();
+      activeSourcesRef.current.forEach(({ source, gain }) => {
         try {
-          source.stop();
-          source.disconnect();
-        } catch (e) {}
+          if (gain && ctx) {
+            gain.gain.setValueAtTime(gain.gain.value, ctx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.001, ctx.currentTime + 0.04);
+          }
+          setTimeout(() => {
+            try {
+              source.stop();
+              source.disconnect();
+            } catch (e) {}
+          }, 45);
+        } catch (e) {
+          try {
+            source.stop();
+            source.disconnect();
+          } catch (err) {}
+        }
       });
       activeSourcesRef.current = [];
     }
   };
 
   const playClickSound = async () => {
+    if (!isPreloaderActiveRef.current && isComplete) return;
+
     try {
       const ctx = getAudioContext();
       if (ctx.state === 'suspended') {
         await ctx.resume();
       }
-      const buffer = await decodeAudioData(click002Sound.dataUri);
+      const buffer = clickBufferRef.current || (await decodeAudioData(click002Sound.dataUri));
+      if (!buffer) return;
+
       const source = ctx.createBufferSource();
       const gain = ctx.createGain();
 
@@ -95,9 +136,19 @@ export default function Preloader({ onComplete, skip = false }) {
     // Synchronous ref check prevents dual trigger from touchstart + click on mobile
     if (hasStartedRef.current) return;
     hasStartedRef.current = true;
+    isPreloaderActiveRef.current = true;
+
+    // Immediately wake audio context on user gesture
+    try {
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') {
+        ctx.resume().catch(() => {});
+      }
+    } catch (e) {}
+
     setHasStarted(true);
 
-    // Play authentic original scroll sound file upon explicit user click
+    // Play authentic original scroll sound file in lockstep with boot
     playAuthenticScrollSound();
   };
 
@@ -110,10 +161,12 @@ export default function Preloader({ onComplete, skip = false }) {
     };
 
     window.addEventListener('pointerdown', handleInteraction, { once: true });
+    window.addEventListener('touchstart', handleInteraction, { once: true, passive: true });
     window.addEventListener('keydown', handleInteraction, { once: true });
 
     return () => {
       window.removeEventListener('pointerdown', handleInteraction);
+      window.removeEventListener('touchstart', handleInteraction);
       window.removeEventListener('keydown', handleInteraction);
     };
   }, [skip]);
@@ -151,6 +204,7 @@ export default function Preloader({ onComplete, skip = false }) {
 
       if (currentProgress >= 100) {
         clearInterval(interval);
+        isPreloaderActiveRef.current = false;
         stopAllScrollSounds();
         playClickSound();
 
@@ -162,6 +216,7 @@ export default function Preloader({ onComplete, skip = false }) {
 
     return () => {
       clearInterval(interval);
+      isPreloaderActiveRef.current = false;
       stopAllScrollSounds();
       document.body.style.overflow = 'unset';
     };
@@ -169,6 +224,7 @@ export default function Preloader({ onComplete, skip = false }) {
 
   // GSAP Exit Animation: Smooth vertical curtain slide-up
   const triggerExitAnimation = () => {
+    isPreloaderActiveRef.current = false;
     stopAllScrollSounds();
 
     if (!containerRef.current) {
