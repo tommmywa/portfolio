@@ -235,8 +235,8 @@ export default function AdminDashboard({ onLogout }) {
     setIsSyncing(true);
     setSyncMessage('');
     try {
-      await cmsStore.syncDefaultsToSupabase();
-      setSyncMessage('SUCCESS: Default projects synced to Supabase database!');
+      const synced = await cmsStore.syncProjectsToSupabase();
+      setSyncMessage(`SUCCESS: ${synced.length} projects successfully synced to Supabase database!`);
       setTimeout(() => setSyncMessage(''), 5000);
     } catch (e) {
       setSyncMessage('ERROR: Could not sync to Supabase. Check browser console for details.');

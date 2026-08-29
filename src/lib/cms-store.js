@@ -319,19 +319,23 @@ export const cmsStore = {
     }
   },
 
-  async syncDefaultsToSupabase() {
-    if (!isSupabaseConfigured() || !supabase) return;
-    try {
-      const rows = DEFAULT_PROJECTS.map((p, idx) => mapToDb(p, idx));
-      const { error } = await supabase.from('projects').upsert(rows, { onConflict: 'id' });
-      if (error) {
-        console.error('Failed to seed defaults to Supabase:', error);
-      } else {
-        this.saveLocal(DEFAULT_PROJECTS);
-      }
-    } catch (e) {
-      console.error('Error syncing defaults to Supabase:', e);
+  async syncProjectsToSupabase(projectsToSync = null) {
+    if (!isSupabaseConfigured() || !supabase) {
+      throw new Error('Supabase is not configured');
     }
+    const projects = projectsToSync || this.getProjects();
+    const rows = projects.map((p, idx) => mapToDb(p, idx));
+    const { error } = await supabase.from('projects').upsert(rows, { onConflict: 'id' });
+    if (error) {
+      console.error('Failed to sync projects to Supabase:', error);
+      throw error;
+    }
+    this.saveLocal(projects);
+    return projects;
+  },
+
+  async syncDefaultsToSupabase() {
+    return this.syncProjectsToSupabase(DEFAULT_PROJECTS);
   },
 
   resetToDefaults() {
