@@ -129,7 +129,7 @@ export default function AdminLogin({ onLoginSuccess, onBackToPortfolio }) {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="ogundipeayodeji00@gmail.com"
+                placeholder="Enter email address"
                 required
                 autoFocus
                 className="w-full bg-neutral-950 border border-neutral-800 focus:border-blue-500 rounded-xl px-4 py-3 text-white placeholder-neutral-600 focus:outline-none transition-colors"
@@ -145,7 +145,7 @@ export default function AdminLogin({ onLoginSuccess, onBackToPortfolio }) {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••••••"
+                placeholder="********"
                 required
                 className="w-full bg-neutral-950 border border-neutral-800 focus:border-blue-500 rounded-xl px-4 py-3 text-white placeholder-neutral-600 focus:outline-none transition-colors"
               />
