@@ -991,7 +991,7 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
                 {/* Right Case Study Card with Connector Lines */}
                 <div className="relative lg:col-span-8 bg-neutral-950/60 border border-neutral-800 rounded-2xl p-6 sm:p-8 space-y-6">
                   {/* Dual Connector lines */}
-                  <div className="hidden lg:flex flex-col gap-[52px] absolute -left-[32px] w-[32px] top-1/2 -translate-y-1/2 z-20 items-center justify-center pointer-events-none">
+                  <div className="hidden lg:flex flex-col gap-[52px] absolute -left-[32px] w-[32px] top-[76px] -translate-y-1/2 z-20 items-center justify-center pointer-events-none">
                     <div className="w-full h-[1px] bg-neutral-800 relative flex items-center justify-between">
                       <span className="w-1.5 h-1.5 rounded-full bg-neutral-800 border border-neutral-700 -ml-1 shrink-0"></span>
                       <span className="w-1.5 h-1.5 rounded-full bg-neutral-800 border border-neutral-700 -mr-1 shrink-0"></span>

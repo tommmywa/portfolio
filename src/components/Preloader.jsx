@@ -69,8 +69,8 @@ export default function Preloader({ onComplete, skip = false }) {
 
       source.buffer = buffer;
       source.loop = true;
-      gain.gain.setValueAtTime(0.01, ctx.currentTime);
-      gain.gain.linearRampToValueAtTime(0.45, ctx.currentTime + 0.05);
+      gain.gain.setValueAtTime(0.005, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.225, ctx.currentTime + 0.05);
 
       source.connect(gain);
       gain.connect(ctx.destination);
@@ -123,7 +123,7 @@ export default function Preloader({ onComplete, skip = false }) {
       const gain = ctx.createGain();
 
       source.buffer = buffer;
-      gain.gain.value = 0.5;
+      gain.gain.value = 0.25;
 
       source.connect(gain);
       gain.connect(ctx.destination);
