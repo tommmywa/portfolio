@@ -16,6 +16,7 @@ import ProjectDetailPage from './components/ProjectDetailPage';
 import AdminLogin from './components/admin/AdminLogin';
 import AdminDashboard from './components/admin/AdminDashboard';
 import { cmsStore } from './lib/cms-store';
+import { supabase, isSupabaseConfigured } from './lib/supabase';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -24,6 +25,8 @@ export default function App() {
     window.location.pathname === '/admin' || window.location.search.includes('admin')
   );
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
+  const [adminUser, setAdminUser] = useState(null);
+  const [authChecking, setAuthChecking] = useState(isSupabaseConfigured());
   const [selectedProjectId, setSelectedProjectId] = useState(null);
   const [projects, setProjects] = useState([]);
 
@@ -91,12 +94,82 @@ export default function App() {
     };
   }, [isAdminView, selectedProjectId]);
 
+  // Synchronize Supabase Auth Session
+  useEffect(() => {
+    if (!isSupabaseConfigured() || !supabase) {
+      setAuthChecking(false);
+      return;
+    }
+
+    // 1. Initial session check on mount
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        setAdminUser(session.user);
+        setIsAdminAuthenticated(true);
+      } else {
+        setAdminUser(null);
+        setIsAdminAuthenticated(false);
+      }
+      setAuthChecking(false);
+    }).catch(() => {
+      setAuthChecking(false);
+    });
+
+    // 2. Real-time auth state subscription
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setAdminUser(session.user);
+        setIsAdminAuthenticated(true);
+      } else {
+        setAdminUser(null);
+        setIsAdminAuthenticated(false);
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
+
   // Admin View
   if (isAdminView) {
-    if (!isAdminAuthenticated) {
-      return <AdminLogin onLoginSuccess={() => setIsAdminAuthenticated(true)} />;
+    if (authChecking) {
+      return (
+        <div className="min-h-screen bg-[#181717] text-white flex items-center justify-center font-mono text-xs p-4 select-none">
+          <div className="flex items-center gap-3 p-4 bg-neutral-900 border border-neutral-800 rounded-xl shadow-2xl">
+            <span className="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse" />
+            <span className="text-neutral-300 uppercase tracking-widest">[ VERIFYING CAD SECURITY SESSION... ]</span>
+          </div>
+        </div>
+      );
     }
-    return <AdminDashboard onLogout={() => setIsAdminAuthenticated(false)} />;
+
+    if (!isAdminAuthenticated) {
+      return (
+        <AdminLogin
+          onLoginSuccess={(user) => {
+            setAdminUser(user);
+            setIsAdminAuthenticated(true);
+          }}
+          onBackToPortfolio={() => {
+            window.history.pushState({}, '', '/');
+            setIsAdminView(false);
+          }}
+        />
+      );
+    }
+    return (
+      <AdminDashboard
+        user={adminUser}
+        onLogout={async () => {
+          if (isSupabaseConfigured() && supabase) {
+            await supabase.auth.signOut();
+          }
+          setAdminUser(null);
+          setIsAdminAuthenticated(false);
+        }}
+      />
+    );
   }
 
   // Selected Project Detail Page View

@@ -29,33 +29,38 @@ CREATE TABLE IF NOT EXISTS public.projects (
 -- 2. Enable Row Level Security (RLS)
 ALTER TABLE public.projects ENABLE ROW LEVEL SECURITY;
 
--- 3. Create RLS Policies for projects
+-- 3. Create Secure RLS Policies for projects
 -- Allow everyone to read projects (Public Portfolio View)
 DROP POLICY IF EXISTS "Public can view projects" ON public.projects;
 CREATE POLICY "Public can view projects"
   ON public.projects
   FOR SELECT
+  TO public
   USING (true);
 
--- Allow inserting projects (Admin CMS)
+-- Allow inserting projects (Authenticated Admin Only)
 DROP POLICY IF EXISTS "Allow insert projects" ON public.projects;
 CREATE POLICY "Allow insert projects"
   ON public.projects
   FOR INSERT
+  TO authenticated
   WITH CHECK (true);
 
--- Allow updating projects (Admin CMS)
+-- Allow updating projects (Authenticated Admin Only)
 DROP POLICY IF EXISTS "Allow update projects" ON public.projects;
 CREATE POLICY "Allow update projects"
   ON public.projects
   FOR UPDATE
-  USING (true);
+  TO authenticated
+  USING (true)
+  WITH CHECK (true);
 
--- Allow deleting projects (Admin CMS)
+-- Allow deleting projects (Authenticated Admin Only)
 DROP POLICY IF EXISTS "Allow delete projects" ON public.projects;
 CREATE POLICY "Allow delete projects"
   ON public.projects
   FOR DELETE
+  TO authenticated
   USING (true);
 
 -- 4. Create Public Storage Bucket for Project Media (Images & MP4 Videos)
@@ -69,25 +74,29 @@ DROP POLICY IF EXISTS "Public Media Access" ON storage.objects;
 CREATE POLICY "Public Media Access"
   ON storage.objects
   FOR SELECT
+  TO public
   USING (bucket_id = 'portfolio-media');
 
--- Allow uploading media
+-- Allow uploading media (Authenticated Admin Only)
 DROP POLICY IF EXISTS "Allow Media Uploads" ON storage.objects;
 CREATE POLICY "Allow Media Uploads"
   ON storage.objects
   FOR INSERT
+  TO authenticated
   WITH CHECK (bucket_id = 'portfolio-media');
 
--- Allow updating media
+-- Allow updating media (Authenticated Admin Only)
 DROP POLICY IF EXISTS "Allow Media Updates" ON storage.objects;
 CREATE POLICY "Allow Media Updates"
   ON storage.objects
   FOR UPDATE
+  TO authenticated
   USING (bucket_id = 'portfolio-media');
 
--- Allow deleting media
+-- Allow deleting media (Authenticated Admin Only)
 DROP POLICY IF EXISTS "Allow Media Deletion" ON storage.objects;
 CREATE POLICY "Allow Media Deletion"
   ON storage.objects
   FOR DELETE
+  TO authenticated
   USING (bucket_id = 'portfolio-media');

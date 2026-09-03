@@ -169,7 +169,7 @@ function AdminProjectCard({ project, index, totalCount, onEdit, onDelete, onMove
   );
 }
 
-export default function AdminDashboard({ onLogout }) {
+export default function AdminDashboard({ user, onLogout }) {
   const [projects, setProjects] = useState([]);
   const [currentView, setCurrentView] = useState('list'); // 'list' | 'editor'
   const [editingProject, setEditingProject] = useState(null);
@@ -305,7 +305,14 @@ export default function AdminDashboard({ onLogout }) {
             </p>
           </div>
 
-          <div className="flex items-center gap-3 font-mono text-xs">
+          <div className="flex items-center gap-3 font-mono text-xs flex-wrap">
+            {user?.email && (
+              <div className="px-3 py-2 rounded-xl bg-neutral-950 border border-neutral-800 text-[11px] text-neutral-400 flex items-center gap-2">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span className="text-neutral-300 font-bold">{user.email}</span>
+              </div>
+            )}
+
             <a
               href="/"
               className="px-4 py-2.5 rounded-xl border border-neutral-800 bg-neutral-900/80 hover:bg-neutral-800 text-neutral-300 transition-colors flex items-center gap-2"
