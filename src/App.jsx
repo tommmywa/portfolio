@@ -94,19 +94,24 @@ export default function App() {
     };
   }, [isAdminView, selectedProjectId]);
 
-  // Synchronize Supabase Auth Session
+  // Synchronize Supabase Auth Session (Restricted to Authorized Admin Email)
   useEffect(() => {
     if (!isSupabaseConfigured() || !supabase) {
       setAuthChecking(false);
       return;
     }
 
+    const ALLOWED_ADMIN_EMAILS = ['ogundipeayodeji00@gmail.com'];
+
     // 1. Initial session check on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
+      if (session?.user && ALLOWED_ADMIN_EMAILS.includes(session.user.email?.toLowerCase())) {
         setAdminUser(session.user);
         setIsAdminAuthenticated(true);
       } else {
+        if (session?.user) {
+          supabase.auth.signOut();
+        }
         setAdminUser(null);
         setIsAdminAuthenticated(false);
       }
@@ -117,10 +122,13 @@ export default function App() {
 
     // 2. Real-time auth state subscription
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
+      if (session?.user && ALLOWED_ADMIN_EMAILS.includes(session.user.email?.toLowerCase())) {
         setAdminUser(session.user);
         setIsAdminAuthenticated(true);
       } else {
+        if (session?.user) {
+          supabase.auth.signOut();
+        }
         setAdminUser(null);
         setIsAdminAuthenticated(false);
       }

@@ -1,17 +1,17 @@
 import React, { useState } from 'react';
-import { Lock, ArrowRight, ShieldCheck, Mail, Key, Sparkles, AlertTriangle, ArrowLeft } from 'lucide-react';
+import { Lock, ArrowRight, ShieldCheck, Mail, Key, AlertTriangle, ArrowLeft } from 'lucide-react';
 import TechnicalDrawingBackground from '../TechnicalDrawingBackground';
 import { supabase, isSupabaseConfigured } from '../../lib/supabase';
 import { useSound } from '../../hooks/useSound';
 import { click002Sound } from '../../sounds/click-002';
 
+const ALLOWED_ADMIN_EMAILS = ['ogundipeayodeji00@gmail.com'];
+
 export default function AdminLogin({ onLoginSuccess, onBackToPortfolio }) {
-  const [authMode, setAuthMode] = useState('password'); // 'password' | 'magic-link'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [passcode, setPasscode] = useState(''); // Only used in local fallback mode
   const [error, setError] = useState('');
-  const [message, setMessage] = useState('');
   const [isAuthenticating, setIsAuthenticating] = useState(false);
   const [playClick] = useSound(click002Sound);
 
@@ -20,7 +20,6 @@ export default function AdminLogin({ onLoginSuccess, onBackToPortfolio }) {
   const handlePasswordLogin = async (e) => {
     e.preventDefault();
     setError('');
-    setMessage('');
     setIsAuthenticating(true);
     playClick();
 
@@ -39,6 +38,14 @@ export default function AdminLogin({ onLoginSuccess, onBackToPortfolio }) {
         }
 
         if (data?.user) {
+          const userEmail = data.user.email?.toLowerCase();
+          if (!ALLOWED_ADMIN_EMAILS.includes(userEmail)) {
+            await supabase.auth.signOut();
+            setError('ACCESS DENIED // UNAUTHORIZED ADMIN ACCOUNT');
+            setIsAuthenticating(false);
+            return;
+          }
+
           onLoginSuccess(data.user);
         }
       } catch (err) {
@@ -57,44 +64,6 @@ export default function AdminLogin({ onLoginSuccess, onBackToPortfolio }) {
         setIsAuthenticating(false);
       }
     }, 500);
-  };
-
-  const handleMagicLinkLogin = async (e) => {
-    e.preventDefault();
-    if (!email.trim()) {
-      setError('PLEASE ENTER AN EMAIL ADDRESS');
-      return;
-    }
-
-    setError('');
-    setMessage('');
-    setIsAuthenticating(true);
-    playClick();
-
-    if (!isConfigured || !supabase) {
-      setError('SUPABASE CLOUD AUTHENTICATION IS NOT CONFIGURED');
-      setIsAuthenticating(false);
-      return;
-    }
-
-    try {
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email: email.trim(),
-        options: {
-          emailRedirectTo: window.location.origin + '/admin',
-        },
-      });
-
-      if (otpError) {
-        setError(`TRANSMISSION FAILED // ${otpError.message.toUpperCase()}`);
-      } else {
-        setMessage('AUTHENTICATION MAGIC LINK DISPATCHED // CHECK YOUR EMAIL INBOX');
-      }
-    } catch (err) {
-      setError(`TRANSMISSION EXCEPTION // ${err.message?.toUpperCase() || 'NETWORK ERROR'}`);
-    } finally {
-      setIsAuthenticating(false);
-    }
   };
 
   return (
@@ -133,7 +102,7 @@ export default function AdminLogin({ onLoginSuccess, onBackToPortfolio }) {
         </div>
 
         {/* Supabase Status Indicator */}
-        <div className="mb-5 flex items-center justify-between px-3.5 py-2 rounded-xl bg-neutral-950/80 border border-neutral-800 text-[10px] uppercase tracking-wider">
+        <div className="mb-6 flex items-center justify-between px-3.5 py-2 rounded-xl bg-neutral-950/80 border border-neutral-800 text-[10px] uppercase tracking-wider">
           <span className="text-neutral-500">AUTH PROVIDER:</span>
           {isConfigured ? (
             <span className="flex items-center gap-1.5 text-emerald-400 font-bold">
@@ -148,49 +117,8 @@ export default function AdminLogin({ onLoginSuccess, onBackToPortfolio }) {
           )}
         </div>
 
-        {/* Auth Mode Tabs (When Supabase is Connected) */}
+        {/* Cloud Login Form: Strict Email & Password */}
         {isConfigured && (
-          <div className="grid grid-cols-2 gap-2 mb-6 p-1 bg-neutral-950 border border-neutral-800 rounded-xl text-xs">
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode('password');
-                setError('');
-                setMessage('');
-                playClick();
-              }}
-              className={`py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                authMode === 'password'
-                  ? 'bg-neutral-800 text-white shadow-sm border border-neutral-700'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Key className="w-3.5 h-3.5 text-blue-400" />
-              <span>PASSWORD</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode('magic-link');
-                setError('');
-                setMessage('');
-                playClick();
-              }}
-              className={`py-2 px-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 cursor-pointer ${
-                authMode === 'magic-link'
-                  ? 'bg-neutral-800 text-white shadow-sm border border-neutral-700'
-                  : 'text-neutral-400 hover:text-white'
-              }`}
-            >
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>MAGIC LINK</span>
-            </button>
-          </div>
-        )}
-
-        {/* Cloud Login Form: Password Mode */}
-        {isConfigured && authMode === 'password' && (
           <form onSubmit={handlePasswordLogin} className="space-y-4 text-xs">
             <div>
               <label className="block text-neutral-400 uppercase tracking-widest text-[10px] mb-1.5 flex items-center gap-1.5">
@@ -240,54 +168,6 @@ export default function AdminLogin({ onLoginSuccess, onBackToPortfolio }) {
                 <>
                   <span>LOGIN WITH SUPABASE</span>
                   <ArrowRight className="w-4 h-4" />
-                </>
-              )}
-            </button>
-          </form>
-        )}
-
-        {/* Cloud Login Form: Magic Link Mode */}
-        {isConfigured && authMode === 'magic-link' && (
-          <form onSubmit={handleMagicLinkLogin} className="space-y-4 text-xs">
-            <div>
-              <label className="block text-neutral-400 uppercase tracking-widest text-[10px] mb-1.5 flex items-center gap-1.5">
-                <Mail className="w-3 h-3 text-amber-400" />
-                <span>DESTINATION EMAIL</span>
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="ogundipeayodeji00@gmail.com"
-                required
-                autoFocus
-                className="w-full bg-neutral-950 border border-neutral-800 focus:border-amber-500 rounded-xl px-4 py-3 text-white placeholder-neutral-600 focus:outline-none transition-colors"
-              />
-            </div>
-
-            {error && (
-              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-[11px] leading-relaxed">
-                {error}
-              </div>
-            )}
-
-            {message && (
-              <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl text-emerald-400 text-[11px] leading-relaxed">
-                {message}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              disabled={isAuthenticating}
-              className="w-full py-3.5 px-6 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs uppercase tracking-widest font-bold transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-amber-600/20 disabled:opacity-50 mt-2"
-            >
-              {isAuthenticating ? (
-                <span>DISPATCHING MAGIC LINK...</span>
-              ) : (
-                <>
-                  <span>SEND MAGIC LINK</span>
-                  <Sparkles className="w-4 h-4" />
                 </>
               )}
             </button>
