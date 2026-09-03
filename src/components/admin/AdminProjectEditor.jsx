@@ -8,7 +8,6 @@ import {
   Trash2,
   ShieldCheck,
   Layers,
-  Tag,
   Calendar,
   User,
   Plus,
@@ -950,11 +949,11 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
                     </h3>
                   </div>
 
-                  <div className="space-y-4 pt-4 border-t border-neutral-800/80">
+                  <div className="space-y-5 pt-4 border-t border-neutral-800/80">
                     <div className="flex items-start gap-3">
                       <ShieldCheck className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
                       <div>
-                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest block">
+                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest block mb-2">
                           CLIENT
                         </span>
                         <span className="text-neutral-200">
@@ -966,7 +965,7 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
                     <div className="flex items-start gap-3">
                       <User className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
                       <div>
-                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest block">
+                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest block mb-2">
                           ROLE & RESPONSIBILITY
                         </span>
                         <span className="text-neutral-200">
@@ -978,29 +977,11 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
                     <div className="flex items-start gap-3">
                       <Calendar className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
                       <div>
-                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest block">
+                        <span className="text-[10px] text-neutral-500 uppercase tracking-widest block mb-2">
                           TIMELINE / YEAR
                         </span>
                         <span className="text-neutral-200">{formData.date}</span>
                       </div>
-                    </div>
-                  </div>
-
-                  {/* Tags */}
-                  <div className="pt-4 border-t border-neutral-800/80">
-                    <span className="text-[10px] text-neutral-500 uppercase tracking-widest block mb-2.5 flex items-center gap-1.5">
-                      <Tag className="w-3.5 h-3.5 text-blue-400" />
-                      <span>TECH STACK & TOOLS</span>
-                    </span>
-                    <div className="flex flex-wrap gap-2">
-                      {formData.tags.map((tag, idx) => (
-                        <span
-                          key={idx}
-                          className="px-2.5 py-1 rounded bg-neutral-900 border border-neutral-800 text-[11px] text-neutral-300"
-                        >
-                          {tag}
-                        </span>
-                      ))}
                     </div>
                   </div>
 

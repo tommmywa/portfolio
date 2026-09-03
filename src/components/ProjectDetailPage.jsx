@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, ShieldCheck, Tag, User, Layers, Calendar, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, User, Layers, Calendar, ArrowRight } from 'lucide-react';
 import TechnicalDrawingBackground from './TechnicalDrawingBackground';
 import { assetDB, isVideoMedia } from '../lib/asset-db';
 
@@ -64,11 +64,6 @@ export default function ProjectDetailPage({ project, allProjects = [], onBack, o
       ? allProjects[(currentIndex + 1) % allProjects.length]
       : null;
 
-  const tagsList = Array.isArray(project.tags)
-    ? project.tags
-    : typeof project.tags === 'string'
-    ? project.tags.split(',').map((t) => t.trim())
-    : ['React', 'WebGL', 'TailwindCSS'];
 
   // Default gallery fallback images if custom gallery is not specified
   const galleryItems =
@@ -118,11 +113,11 @@ export default function ProjectDetailPage({ project, allProjects = [], onBack, o
               </h3>
             </div>
 
-            <div className="space-y-4 pt-4 border-t border-neutral-800/80">
+            <div className="space-y-5 pt-4 border-t border-neutral-800/80">
               <div className="flex items-start gap-3">
                 <ShieldCheck className="w-4 h-4 text-blue-400 mt-0.5 shrink-0" />
                 <div>
-                  <span className="text-[10px] text-neutral-500 uppercase tracking-widest block">
+                  <span className="text-[10px] text-neutral-500 uppercase tracking-widest block mb-2">
                     CLIENT
                   </span>
                   <span className="text-neutral-200">{project.client || 'Internal Project'}</span>
@@ -132,7 +127,7 @@ export default function ProjectDetailPage({ project, allProjects = [], onBack, o
               <div className="flex items-start gap-3">
                 <User className="w-4 h-4 text-emerald-400 mt-0.5 shrink-0" />
                 <div>
-                  <span className="text-[10px] text-neutral-500 uppercase tracking-widest block">
+                  <span className="text-[10px] text-neutral-500 uppercase tracking-widest block mb-2">
                     ROLE & RESPONSIBILITY
                   </span>
                   <span className="text-neutral-200">
@@ -144,29 +139,11 @@ export default function ProjectDetailPage({ project, allProjects = [], onBack, o
               <div className="flex items-start gap-3">
                 <Calendar className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
                 <div>
-                  <span className="text-[10px] text-neutral-500 uppercase tracking-widest block">
+                  <span className="text-[10px] text-neutral-500 uppercase tracking-widest block mb-2">
                     TIMELINE / YEAR
                   </span>
                   <span className="text-neutral-200">{project.date}</span>
                 </div>
-              </div>
-            </div>
-
-            {/* Tech Stack Tags */}
-            <div className="pt-4 border-t border-neutral-800/80">
-              <span className="text-[10px] text-neutral-500 uppercase tracking-widest block mb-2.5 flex items-center gap-1.5">
-                <Tag className="w-3.5 h-3.5 text-blue-400" />
-                <span>TECH STACK & TOOLS</span>
-              </span>
-              <div className="flex flex-wrap gap-2">
-                {tagsList.map((tag, idx) => (
-                  <span
-                    key={idx}
-                    className="px-2.5 py-1 rounded bg-neutral-950 border border-neutral-800 text-[11px] text-neutral-300"
-                  >
-                    {tag}
-                  </span>
-                ))}
               </div>
             </div>
 
