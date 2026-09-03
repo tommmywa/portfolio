@@ -157,6 +157,7 @@ export default function Preloader({ onComplete, skip = false }) {
     if (skip) return;
 
     const handleInteraction = (e) => {
+      if (e?.stopPropagation) e.stopPropagation();
       startBootSequence();
     };
 
@@ -252,7 +253,10 @@ export default function Preloader({ onComplete, skip = false }) {
   return (
     <div
       ref={containerRef}
-      onClick={startBootSequence}
+      onClick={(e) => {
+        e.stopPropagation();
+        startBootSequence();
+      }}
       className="fixed inset-0 z-[10000] bg-[#181717] text-[#eeeeee] flex flex-col justify-between p-4 sm:p-6 md:p-12 select-none overflow-hidden cursor-pointer"
     >
       {/* Background CAD Dotted Pattern for Preloader */}
