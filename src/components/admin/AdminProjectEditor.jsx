@@ -6,7 +6,6 @@ import {
   Video,
   Image as ImageIcon,
   Trash2,
-  ExternalLink,
   ShieldCheck,
   Layers,
   Tag,
@@ -1005,19 +1004,7 @@ export default function AdminProjectEditor({ project, allProjects = [], onSave, 
                     </div>
                   </div>
 
-                  {formData.liveUrl && (
-                    <div className="pt-4 border-t border-neutral-800/80">
-                      <a
-                        href={formData.liveUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="w-full py-3 px-4 rounded-xl bg-blue-600 text-white font-bold uppercase tracking-widest flex items-center justify-center gap-2"
-                      >
-                        <span>VISIT LIVE PROJECT</span>
-                        <ExternalLink className="w-4 h-4" />
-                      </a>
-                    </div>
-                  )}
+
                 </div>
 
                 {/* Right Case Study Card with Connector Lines */}

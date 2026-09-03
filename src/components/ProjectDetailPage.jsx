@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ArrowLeft, ExternalLink, ShieldCheck, Tag, User, Layers, Calendar, ArrowRight } from 'lucide-react';
+import { ArrowLeft, ShieldCheck, Tag, User, Layers, Calendar, ArrowRight } from 'lucide-react';
 import TechnicalDrawingBackground from './TechnicalDrawingBackground';
 import { assetDB, isVideoMedia } from '../lib/asset-db';
 
@@ -170,20 +170,7 @@ export default function ProjectDetailPage({ project, allProjects = [], onBack, o
               </div>
             </div>
 
-            {/* External Live URL Link */}
-            {project.liveUrl && project.liveUrl !== '#' && (
-              <div className="pt-4 border-t border-neutral-800/80">
-                <a
-                  href={project.liveUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3 px-4 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold uppercase tracking-widest transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-blue-600/20"
-                >
-                  <span>VISIT LIVE PROJECT</span>
-                  <ExternalLink className="w-4 h-4" />
-                </a>
-              </div>
-            )}
+
           </div>
 
           {/* Right Case Study Breakdown (With 52px Connector Lines Aligned to its Exact Middle) */}
